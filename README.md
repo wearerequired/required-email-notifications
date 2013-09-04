@@ -42,7 +42,16 @@ req_notifications()->addNotification()
 
 #### Update Notifications ####
 ```
-req_notifications()->getNotification( 123 /* The notification id */ )->setSubject( 'I\'m a awesome notification. Trust me!' )->save();
+// Update the subject
+req_notifications()->getNotification( 123 /* The notification id */ )
+    ->setSubject( 'I\'m a awesome notification. Trust me!' )
+    ->save();
+```
+```
+// Add another recipient
+req_notifications()->getNotification( 123 /* The notification id */ )
+    ->addRecipient( 'recipient@email.com' )
+    ->save();
 ```
 
 required+
