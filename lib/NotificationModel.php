@@ -551,7 +551,7 @@ class NotificationModel {
             }
         }
 
-        // TODO when needed, implement the update and escalate stuff here
+        // when needed, implement the update and escalate stuff here
 
     }
 
