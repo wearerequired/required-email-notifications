@@ -11,7 +11,7 @@ Mandrill provides a powerful API, built by the folks at MailChimp it's a good wo
 Example Usage
 -------------
 #### Add Notifications ####
-```
+```php
 req_notifications()->addNotification()
     // we just support the Mandrill adapter at this time, probably others will follow
     ->setAdapter( 'Mandrill' )
@@ -41,13 +41,13 @@ req_notifications()->addNotification()
 ```
 
 #### Update Notifications ####
-```
+```php
 // Update the subject
 req_notifications()->getNotification( 123 /* The notification id */ )
     ->setSubject( 'I\'m a awesome notification. Trust me!' )
     ->save();
 ```
-```
+```php
 // Add another recipient
 req_notifications()->getNotification( 123 /* The notification id */ )
     ->addRecipient( 'recipient@email.com' )
