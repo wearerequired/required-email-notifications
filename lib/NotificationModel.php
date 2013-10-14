@@ -385,7 +385,7 @@ class NotificationModel {
     /**
      * Set a notification message body
      *
-     * @param $body the message body
+     * @param $body string the message body
      * @return NotificationModel
      */
     public function setBody($body) {
