@@ -193,4 +193,22 @@ class NotificationAdapterMandrill implements NotificationAdapter {
         }
     }
 
+    /**
+     * Check if all options are set to use this adapter
+     *
+     * @return bool
+     */
+    public static function isConfigured() {
+
+        if ( ! \get_option( 'rplus_notifications_adapters_mandrill_apikey' ) ) {
+            return false;
+        }
+
+        if ( ! \get_option( 'rplus_notifications_sender_email' ) ) {
+            return false;
+        }
+
+        return true;
+    }
+
 }

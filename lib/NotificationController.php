@@ -11,6 +11,7 @@ namespace Rplus\Notifications;
 final class NotificationController {
 
     private static $instance = null;
+    private static $conflict = false;
 
     /**
      * Singleton magizzle
@@ -40,6 +41,58 @@ final class NotificationController {
             add_action( 'admin_init', array( $this, 'plugin_page_init' ) );
         }
 
+        // check if wordpress mails should be sent via mandrill adapter
+        $wp_mail_override = get_option( 'rplus_notifications_adapters_mandrill_override_wp_mail' );
+        if ( !empty( $wp_mail_override ) && ( $wp_mail_override == 1 ) ) {
+
+            if ( function_exists('wp_mail') ) {
+                self::$conflict = true;
+                add_action( 'admin_notices', array( __CLASS__, 'wpMailOverrideConflictNotice' ) );
+                return;
+            }
+
+            if ( NotificationAdapterMandrill::isConfigured() ) {
+
+                // cause we're namespacing everything, we need to include this function in a separate file
+                // that's the only chance to make it visible in the global namespace
+                require dirname( __FILE__ ) . '/function.override.wp_mail.php';
+
+            }
+
+        }
+
+    }
+
+    /**
+     * Send mail with the WordPress native wp_mail method
+     *
+     * @param $to
+     * @param $subject
+     * @param $message
+     * @param string $headers
+     * @param array $attachments
+     */
+    public static function wp_mail_native( $to, $subject, $message, $headers = '', $attachments = array() ) {
+
+        error_log( "\nrequired+ E-Mail Notifications -> wp_mail_native(): $to ($subject)\n" );
+
+        require dirname( __FILE__ ) . '/legacy/function.wp_mail.php';
+
+    }
+
+    /**
+     * Shows a notice
+     *
+     * wp_mail could not be overriden cause its already defined somewhere else
+     */
+    public static function wpMailOverrideConflictNotice() {
+        ?>
+        <div class="error">
+            <p>
+                <?php _e('required+ E-Mail Notifications: wp_mail has been declared by another process or plugin, so you won\'t be able to use the Mandrill Adapter for all WordPress Mails until the problem is solved.', 'rplusnotifications'); ?>
+            </p>
+        </div>
+        <?php
     }
 
     /**
@@ -75,6 +128,8 @@ final class NotificationController {
         register_setting( 'rplus-notifications-email', 'rplus_notifications_sender_email' );
         register_setting( 'rplus-notifications-email', 'rplus_notifications_sender_name' );
         register_setting( 'rplus-notifications-email', 'rplus_notifications_adapters_mandrill_apikey' );
+        register_setting( 'rplus-notifications-email', 'rplus_notifications_adapters_mandrill_override_wp_mail' );
+        register_setting( 'rplus-notifications-email', 'rplus_notifications_adapters_mandrill_override_use_queue' );
 
         add_settings_section(
             'rplus_notifications_email',
@@ -98,7 +153,7 @@ final class NotificationController {
             'rplus_notifications_sender_email',
             __('Sender E-Mail', 'rplusnotifications'),
             function () {
-                ?><input type="text" id="rplus_notifications_sender_email" name="rplus_notifications_sender_email" value="<?php echo get_option( 'rplus_notifications_sender_email' ); ?>" /><?php
+                ?><input type="text" class="regular-text" id="rplus_notifications_sender_email" name="rplus_notifications_sender_email" value="<?php echo get_option( 'rplus_notifications_sender_email' ); ?>" /><?php
             },
             'rplus-notifications',
             'rplus_notifications_email'
@@ -108,7 +163,7 @@ final class NotificationController {
             'rplus_notifications_sender_name',
             __('Sender Name', 'rplusnotifications'),
             function() {
-                ?><input type="text" id="rplus_notifications_sender_name" name="rplus_notifications_sender_name" value="<?php echo get_option( 'rplus_notifications_sender_name' ); ?>" /><?php
+                ?><input type="text" class="regular-text" id="rplus_notifications_sender_name" name="rplus_notifications_sender_name" value="<?php echo get_option( 'rplus_notifications_sender_name' ); ?>" /><?php
             },
             'rplus-notifications',
             'rplus_notifications_email'
@@ -118,7 +173,39 @@ final class NotificationController {
             'rplus_notifications_adapters_mandrill_apikey',
             __('Madrill API Key', 'rplusnotifications'),
             function() {
-                ?><input type="text" id="rplus_notifications_adapters_mandrill_apikey" name="rplus_notifications_adapters_mandrill_apikey" value="<?php echo get_option( 'rplus_notifications_adapters_mandrill_apikey' ); ?>" /><?php
+                ?><input type="text" class="regular-text" id="rplus_notifications_adapters_mandrill_apikey" name="rplus_notifications_adapters_mandrill_apikey" value="<?php echo get_option( 'rplus_notifications_adapters_mandrill_apikey' ); ?>" /><?php
+            },
+            'rplus-notifications',
+            'rplus_notifications_adapters'
+        );
+
+        add_settings_field(
+            'rplus_notifications_adapters_mandrill_override_wp_mail',
+            __('WordPress Mails', 'rplusnotifications'),
+            function() {
+                ?>
+                <label for="rplus_notifications_adapters_mandrill_override_wp_mail">
+                    <input type="hidden" name="rplus_notifications_adapters_mandrill_override_wp_mail" value="0">
+                    <input name="rplus_notifications_adapters_mandrill_override_wp_mail" type="checkbox" id="rplus_notifications_adapters_mandrill_override_wp_mail" value="1" <?php checked( get_option( 'rplus_notifications_adapters_mandrill_override_wp_mail' ), '1' ); ?>>
+                    <?php _e( 'Alle WordPress Mails über Mandrill verschicken', 'rplusnotifications'); ?>
+                </label>
+                <?php
+            },
+            'rplus-notifications',
+            'rplus_notifications_adapters'
+        );
+
+        add_settings_field(
+            'rplus_notifications_adapters_mandrill_override_use_queue',
+            __('Delay sending (performance)', 'rplusnotifications'),
+            function() {
+                ?>
+                <label for="rplus_notifications_adapters_mandrill_override_use_queue">
+                    <input type="hidden" name="rplus_notifications_adapters_mandrill_override_use_queue" value="0">
+                    <input name="rplus_notifications_adapters_mandrill_override_use_queue" type="checkbox" id="rplus_notifications_adapters_mandrill_override_use_queue" value="1" <?php checked( get_option( 'rplus_notifications_adapters_mandrill_override_use_queue' ), '1' ); ?>>
+                    <?php _e( 'Die E-Mail nicht direkt verschicken, sondern in der Queue ablegen und per CronJob verschicken, dies verbesser die Performance.', 'rplusnotifications'); ?>
+                </label>
+            <?php
             },
             'rplus-notifications',
             'rplus_notifications_adapters'
