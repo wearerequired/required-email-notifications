@@ -613,7 +613,7 @@ class NotificationModel {
             'post_title' => $this->getSubject(),
             'post_content' => $this->getBody()
         ) );
-\myvar_dump($this->getBody());
+
         // set all other properties
         \update_post_meta( $this->id, 'rplus_mail_body', $this->getBody() );
         \update_post_meta( $this->id, 'rplus_adapter', $this->adapter );
