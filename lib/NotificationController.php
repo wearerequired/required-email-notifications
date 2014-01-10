@@ -259,6 +259,7 @@ final class NotificationController {
 
         // fetch all notifications in state new
         $collection = new NotificationModelCollection( array(
+            'post_status' => array( 'publish', 'pending', 'draft', 'future', 'private' ),
             'meta_query' => array(
                 // load all notifications with send_on is in the past
                 array(
