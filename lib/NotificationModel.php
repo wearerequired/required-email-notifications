@@ -135,7 +135,7 @@ class NotificationModel {
                 'labels' =>                 $labels,
                 'hierarchical' =>           false,
 
-                'supports' =>               array( 'title', 'editor', 'author' ),
+                'supports' =>               array( 'title', 'editor' ),
 
                 'public' =>                 false,
                 'show_ui' =>                true,
@@ -201,6 +201,7 @@ class NotificationModel {
                     break;
 
                 case 'rplus_state':
+
                     switch (\get_post_meta( $post_id, 'rplus_state', true )) {
                         case NotificationState::ISNEW:
                             printf( '<strong>%s</strong> (%s)', __('New', 'rplusnotifications'), __('to be processed', 'rplusnotifications') );
@@ -215,6 +216,14 @@ class NotificationModel {
                             printf( '<strong>%s</strong> (%s)', __('Error', 'rplusnotifications'), get_post_meta( $post_id, 'rplus_error_message', true) );
                             break;
                     }
+
+                    $last_executed = \get_post_meta( $post_id, 'rplus_last_execution_time', true );
+                    if ( ! empty( $last_executed ) ) {
+
+                        echo '<br /><strong>'.__('Executed: ', 'rplusnotifications').'</strong>';
+                        echo date( 'd.m.Y H:i:s', $last_executed );
+                    }
+
                     break;
 
                 case 'rplus_send_on':
@@ -226,6 +235,82 @@ class NotificationModel {
                     break;
             }
         }, 10, 2 );
+
+        /**
+         * Add Notification State meta box
+         */
+        add_action( 'add_meta_boxes', function() {
+
+            add_meta_box(
+                'rplus_notifications_info',
+                __('Mail Status Info', 'rplusnotifications'),
+                function( $post ) {
+
+                    echo '<strong>' . __('Recipients:', 'rplusnotifications') . '</strong>';
+                    NotificationModel::outputRecipientsList( $post->ID );
+
+                    echo '<p><strong>'.__('Status: ', 'rplusnotifications').'</strong>';
+                    NotificationModel::outputNotificationState( $post->ID );
+                    echo '</p>';
+
+                    $last_executed = \get_post_meta( $post->ID, 'rplus_last_execution_time', true );
+                    if ( ! empty( $last_executed ) ) {
+
+                        echo '<p><strong>'.__('Executed: ', 'rplusnotifications') . '</strong>' . date( 'd.m.Y H:i:s', $last_executed ) . '</p>';
+                    }
+
+
+
+                },
+                NotificationModel::$post_type,
+                'side'
+            );
+
+        });
+
+    }
+
+    /**
+     * output a ul li list of recipients
+     *
+     * @param $post_id
+     */
+    public static function outputRecipientsList( $post_id ) {
+
+        $recipients = \get_post_meta( $post_id, 'rplus_recipient', true );
+        if ( count($recipients) ) {
+            echo '<ul style="margin: 0;">';
+            foreach ($recipients as $r) {
+                echo '<li>';
+                echo $r[0] . ( isset($r[1]) ? ' ('.$r[1].')' : '' );
+                echo '</li>';
+            }
+            echo '</ul>';
+        }
+
+    }
+
+    /**
+     * Output the status of given notification
+     *
+     * @param $post_id
+     */
+    public static function outputNotificationState( $post_id ) {
+
+        switch (\get_post_meta( $post_id, 'rplus_state', true )) {
+            case NotificationState::ISNEW:
+                printf( '<strong>%s</strong> (%s)', __('New', 'rplusnotifications'), __('to be processed', 'rplusnotifications') );
+                break;
+            case NotificationState::INPROGRESS:
+                printf( '<strong>%s</strong> (%s)', __('In progress', 'rplusnotifications'), __('still processing', 'rplusnotifications') );
+                break;
+            case NotificationState::COMPLETE:
+                printf( '<strong>%s</strong>', __('Completed', 'rplusnotifications') );
+                break;
+            case NotificationState::ERROR:
+                printf( '<strong>%s</strong> (%s)', __('Error', 'rplusnotifications'), get_post_meta( $post_id, 'rplus_error_message', true) );
+                break;
+        }
 
     }
 
@@ -535,6 +620,8 @@ class NotificationModel {
         if ((int)$this->state === NotificationState::ISNEW) {
 
             $adapter->execute( $this );
+
+            \update_post_meta( $this->id, 'rplus_last_execution_time', time() );
 
             // check the new state of this notification (was probably updated in adapter execute())
             if ($this->state === NotificationState::ERROR) {
