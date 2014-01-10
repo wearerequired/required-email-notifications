@@ -259,7 +259,7 @@ class NotificationModel {
                         echo '<p><strong>'.__('Executed: ', 'rplusnotifications') . '</strong>' . date( 'd.m.Y H:i:s', $last_executed ) . '</p>';
                     }
 
-
+                    echo '<p><strong>'.__('Used Adapter: ', 'rplusnotifications').'</strong>'.\get_post_meta( $post->ID, 'rplus_adapter', true ).'</p>';
 
                 },
                 NotificationModel::$post_type,
