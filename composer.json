@@ -1,0 +1,14 @@
+{
+    "name": "wearerequired/required-email-notifications",
+    "description": "WordPress E-Mail Notifications",
+    "license": "GPL",
+    "authors": [
+        {
+            "name": "Stefan Pasch",
+            "email": "stefan@required.ch"
+        }
+    ],
+    "require": {
+
+    }
+}
