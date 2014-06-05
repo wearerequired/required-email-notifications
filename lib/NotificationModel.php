@@ -141,6 +141,7 @@ class NotificationModel {
                 'show_ui' =>                true,
                 'show_in_menu' =>           true,
                 'menu_position' =>          6,
+                'menu_icon' =>              'dashicons-email-alt',
 
                 'show_in_nav_menus' =>      false,
                 'publicly_queryable' =>     false,
