@@ -206,7 +206,7 @@ class NotificationAdapterMandrill implements NotificationAdapter {
      */
     public static function isConfigured() {
 
-        if ( ! \get_option( 'rplus_notifications_adapters_mandrill_apikey' ) ) {
+        if ( ! \get_option( 'rplus_notifications_adapters_mandrill_apikey' ) && ! defined( 'RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY' ) ) {
             return false;
         }
 
