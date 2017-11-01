@@ -48,7 +48,13 @@ class NotificationAdapterMandrill implements NotificationAdapter {
     public function __construct() {
         try {
 
-            $this->mandrill = new \Mandrill( \get_option( 'rplus_notifications_adapters_mandrill_apikey' ) );
+			// When api key is defined via constant, take that.
+			$api_key = \get_option( 'rplus_notifications_adapters_mandrill_apikey' );
+			if ( defined( 'RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY' ) ) {
+				$api_key = RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY;
+			}
+
+            $this->mandrill = new \Mandrill( $api_key );
 
             // check if we got a valid API Key
             $this->mandrill->users->ping();
