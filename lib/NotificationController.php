@@ -173,7 +173,12 @@ final class NotificationController {
             'rplus_notifications_adapters_mandrill_apikey',
             __('Madrill API Key', 'rplusnotifications'),
             function() {
-                ?><input type="text" class="regular-text" id="rplus_notifications_adapters_mandrill_apikey" name="rplus_notifications_adapters_mandrill_apikey" value="<?php echo get_option( 'rplus_notifications_adapters_mandrill_apikey' ); ?>" /><?php
+            	if ( defined( 'RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY' ) ) {
+            		_e( 'Mandrill API Key ist via wp-config.php gesetzt.', 'rplusnotifications' );
+		            ?><input type="hidden" id="rplus_notifications_adapters_mandrill_apikey" name="rplus_notifications_adapters_mandrill_apikey" value="" /><?php
+				} else {
+		            ?><input type="text" class="regular-text" id="rplus_notifications_adapters_mandrill_apikey" name="rplus_notifications_adapters_mandrill_apikey" value="<?php echo get_option( 'rplus_notifications_adapters_mandrill_apikey' ); ?>" /><?php
+				}
             },
             'rplus-notifications',
             'rplus_notifications_adapters'
