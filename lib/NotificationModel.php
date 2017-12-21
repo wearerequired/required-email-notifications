@@ -149,8 +149,24 @@ class NotificationModel {
                 'has_archive' =>            false,
                 'query_var' =>              false,
                 'can_export' =>             true,
-                'rewrite' =>                array( 'slug' => 'notification' ),
-                'capability_type' =>        'post'
+                'rewrite' =>                false,
+                'capabilities'              => array (
+                    'create_posts'           => 'do_not_allow',
+                    'delete_others_posts'    => 'manage_options',
+                    'delete_post'            => 'manage_options',
+                    'delete_posts'           => 'manage_options',
+                    'delete_private_posts'   => 'manage_options',
+                    'delete_published_posts' => 'manage_options',
+                    'edit_others_posts'      => 'manage_options',
+                    'edit_post'              => 'manage_options',
+                    'edit_posts'             => 'manage_options',
+                    'edit_private_posts'     => 'manage_options',
+                    'edit_published_posts'   => 'manage_options',
+                    'publish_posts'          => 'do_not_allow',
+                    'read'                   => 'manage_options',
+                    'read_post'              => 'manage_options',
+                    'read_private_posts'     => 'manage_options',
+                ),
             )
         );
 
