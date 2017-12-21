@@ -108,14 +108,13 @@ final class NotificationController {
     public function create_admin_page() {
         ?>
         <div class="wrap">
-            <?php screen_icon(); ?>
-            <h2><?php _e('r+ Notifications', 'rplusnotifications'); ?></h2>
+            <h1><?php _e('r+ Notifications', 'rplusnotifications'); ?></h1>
             <form method="post" action="options.php">
                 <?php
                 settings_fields( 'rplus-notifications-email' );
                 do_settings_sections( 'rplus-notifications' );
+                submit_button();
                 ?>
-                <?php submit_button(); ?>
             </form>
         </div>
     <?php
