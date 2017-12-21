@@ -6,61 +6,94 @@
 /**
  * Override default WordPress wp_mail method and send mails via the Mandrill Adapter.
  *
- * @param $to
- * @param $subject
- * @param $message
- * @param string $headers
- * @param array $attachments
- * @return bool|void
+ * @param string|array $to          Array or comma-separated list of email addresses to send message.
+ * @param string       $subject     Email subject
+ * @param string       $message     Message contents
+ * @param string|array $headers     Optional. Additional headers.
+ * @param string|array $attachments Optional. Files to attach.
+ * @return bool Whether the email contents were sent successfully.
  */
-function wp_mail( $to, $subject, $message, $headers = '', $attachments = array() ) {
-    try {
+function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
+	$original_arguments = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
 
-        // Compact the input, apply the filters, and extract them back out
-        extract( apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments' ) ) );
+	try {
+		$atts = apply_filters( 'wp_mail', $original_arguments );
 
-        if ( !is_array($attachments) )
-            $attachments = explode( "\n", str_replace( "\r\n", "\n", $attachments ) );
+		if ( isset( $atts['to'] ) ) {
+			$to = $atts['to'];
+		}
 
-        $notification = req_notifications()->addNotification();
-        $notification->setAdapter( 'Mandrill' )
-            ->setSubject( $subject )
-            ->setBody( $message )
-            ->addRecipient( $to );
+		if ( ! is_array( $to ) ) {
+			$to = explode( ',', $to );
+		}
 
-        // Add attachments, if exist
-        if ( count( $attachments ) ) {
-            foreach ( $attachments as $attachment ) {
+		if ( isset( $atts['subject'] ) ) {
+			$subject = $atts['subject'];
+		}
 
-                $notification->addAttachment( $attachment );
+		if ( isset( $atts['message'] ) ) {
+			$message = $atts['message'];
+		}
 
-            }
-        }
+		if ( isset( $atts['headers'] ) ) {
+			$headers = $atts['headers'];
+		}
 
-        // save and process this notification
-        $notification->save();
+		if ( isset( $atts['attachments'] ) ) {
+			$attachments = $atts['attachments'];
+		}
 
-        // when use queue is active, don't send the mail, just save it, will be processed via cronjob
-        $use_queue = get_option( 'rplus_notifications_adapters_mandrill_override_use_queue' );
-        if ( $use_queue != 1 ) {
+		if ( ! is_array( $attachments ) ) {
+			$attachments = explode( "\n", str_replace( "\r\n", "\n", $attachments ) );
+		}
 
-            $notification->process();
+		$notification = req_notifications()->addNotification();
+		$notification
+			->setAdapter( 'Mandrill' )
+			->setSubject( $subject )
+			->setBody( $message );
 
-        }
+		foreach ( $to as $recipient ) {
+			$notification->addRecipient( $recipient );
+		}
 
-        // when the message couldn't be sent via mandrill, try the native WordPress method
-        if ( $notification->getState() === \Rplus\Notifications\NotificationState::ERROR ) {
+		// Add attachments, if exist
+		if ( count( $attachments ) ) {
+			foreach ( $attachments as $attachment ) {
+				$notification->addAttachment( $attachment );
+			}
+		}
 
-            return \Rplus\Notifications\NotificationController::wp_mail_native( $to, $subject, $message, $headers, $attachments );
+		// save and process this notification
+		$notification->save();
 
-        }
+		// when use queue is active, don't send the mail, just save it, will be processed via cronjob
+		$use_queue = (bool) get_option( 'rplus_notifications_adapters_mandrill_override_use_queue' );
+		if ( ! $use_queue ) {
+			$notification->process();
+		}
 
-        return true;
+		// When the message couldn't be sent via mandrill, try the native WordPress method.
+		if ( $notification->getState() === \Rplus\Notifications\NotificationState::ERROR ) {
+			return \Rplus\Notifications\NotificationController::wp_mail_native(
+				$original_arguments['to'],
+				$original_arguments['subject'],
+				$original_arguments['message'],
+				$original_arguments['headers'],
+				$original_arguments['attachments']
+			);
+		}
 
-        // when the message couldn't be sent via mandrill, try the native WordPress method
-    } catch ( Exception $e ) {
+		return true;
 
-        return \Rplus\Notifications\NotificationController::wp_mail_native( $to, $subject, $message, $headers, $attachments );
-
-    }
+	} catch ( Exception $e ) {
+		// When the message couldn't be sent via mandrill, try the native WordPress method.
+		return \Rplus\Notifications\NotificationController::wp_mail_native(
+			$original_arguments['to'],
+			$original_arguments['subject'],
+			$original_arguments['message'],
+			$original_arguments['headers'],
+			$original_arguments['attachments']
+		);
+	}
 }
