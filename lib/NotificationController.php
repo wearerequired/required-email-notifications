@@ -66,18 +66,18 @@ final class NotificationController {
     /**
      * Send mail with the WordPress native wp_mail method
      *
-     * @param $to
-     * @param $subject
-     * @param $message
-     * @param string $headers
-     * @param array $attachments
+     * @param string|array $to          Array or comma-separated list of email addresses to send message.
+     * @param string       $subject     Email subject
+     * @param string       $message     Message contents
+     * @param string|array $headers     Optional. Additional headers.
+     * @param string|array $attachments Optional. Files to attach.
+     * @return bool Whether the email contents were sent successfully.
      */
     public static function wp_mail_native( $to, $subject, $message, $headers = '', $attachments = array() ) {
 
         error_log( "\nrequired+ E-Mail Notifications -> wp_mail_native(): $to ($subject)\n" );
 
-        require dirname( __FILE__ ) . '/legacy/function.wp_mail.php';
-
+        return require __DIR__ . '/legacy/function.wp_mail.php';
     }
 
     /**
