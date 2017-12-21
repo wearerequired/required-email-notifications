@@ -47,6 +47,70 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
 			$attachments = explode( "\n", str_replace( "\r\n", "\n", $attachments ) );
 		}
 
+		$cc = $bcc = array();
+		$from_email = $from_name = null;
+
+		if ( ! empty( $headers ) ) {
+			if ( ! is_array( $headers ) ) {
+				// Explode the headers out, so this function can take both
+				// string headers and an array of headers.
+				$tempheaders = explode( "\n", str_replace( "\r\n", "\n", $headers ) );
+			} else {
+				$tempheaders = $headers;
+			}
+
+			// If it's actually got contents.
+			if ( ! empty( $tempheaders ) ) {
+				// Iterate through the raw headers.
+				foreach ( (array) $tempheaders as $header ) {
+					if ( false === strpos( $header, ':' ) ) {
+						if ( false !== stripos( $header, 'boundary=' ) ) {
+							$parts    = preg_split( '/boundary=/i', trim( $header ) );
+							$boundary = trim( str_replace( [ "'", '"' ], '', $parts[1] ) );
+						}
+						continue;
+					}
+
+					// Explode them out.
+					list( $name, $content ) = explode( ':', trim( $header ), 2 );
+
+					// Cleanup crew.
+					$name    = trim( $name );
+					$content = trim( $content );
+
+					switch ( strtolower( $name ) ) {
+						// Mainly for legacy -- process a From: header if it's there.
+						case 'from':
+							$bracket_pos = strpos( $content, '<' );
+							if ( false !== $bracket_pos ) {
+								// Text before the bracketed email is the "From" name.
+								if ( $bracket_pos > 0 ) {
+									$from_name = substr( $content, 0, $bracket_pos - 1 );
+									$from_name = str_replace( '"', '', $from_name );
+									$from_name = trim( $from_name );
+								}
+
+								$from_email = substr( $content, $bracket_pos + 1 );
+								$from_email = str_replace( '>', '', $from_email );
+								$from_email = trim( $from_email );
+
+								// Avoid setting an empty $from_email.
+							} elseif ( '' !== trim( $content ) ) {
+								$from_email = trim( $content );
+							}
+							break;
+						case 'cc':
+							$cc = array_merge( (array) $cc, explode( ',', $content ) );
+							break;
+						case 'bcc':
+							$bcc = array_merge( (array) $bcc, explode( ',', $content ) );
+							break;
+					}
+				}
+			}
+		}
+
+
 		$notification = req_notifications()->addNotification();
 		$notification
 			->setAdapter( 'Mandrill' )
@@ -55,6 +119,18 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
 
 		foreach ( $to as $recipient ) {
 			$notification->addRecipient( $recipient );
+		}
+
+		foreach ( $cc as $recipient ) {
+			$notification->addCcRecipient( $recipient );
+		}
+
+		if ( 1 === count( $bcc ) ) {
+			$notification->setBcc( reset( $bcc ) );
+		}
+
+		if ( null !== $from_email ) {
+			$notification->setSender( $from_email, $from_name );
 		}
 
 		// Add attachments, if exist
