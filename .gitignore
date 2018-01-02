@@ -1,2 +1,3 @@
-# IDE meta files / folders
-.idea
+# Composer
+/vendor
+composer.lock
