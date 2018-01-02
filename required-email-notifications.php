@@ -10,27 +10,14 @@ License: GPL
 Copyright: required gmbh
 */
 
-/*
- * autoloader for this plugin
- */
-spl_autoload_register( function( $class ) {
-    $class = explode('\\', $class);
+if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
+	require __DIR__ . '/vendor/autoload.php';
+}
 
-    // ignore stuff outside Rplus namespace
-    if ( $class[0] !== 'Rplus') {
-        return;
-    }
-
-    // strip off namespace shizzle, files are not organised in subfolders
-    $_class = array_pop( $class );
-    $file = __DIR__ . '/lib/' .$_class . '.php';
-
-    if (file_exists( $file )) {
-        require_once( $file );
-    } else {
-        throw new Exception('Can\'t find file containing class '.$class.'. When you\'ve tried to add a adapter, its probably not existent.');
-    }
-} );
+if ( ! class_exists( '\Rplus\Notifications\NotificationController' ) ) {
+	trigger_error( sprintf( '%s does not exist. Check Composer\'s autoloader.',  '\Rplus\Notifications\NotificationController' ), E_USER_WARNING );
+	return;
+}
 
 /**
  * Plugin activation and deactivation

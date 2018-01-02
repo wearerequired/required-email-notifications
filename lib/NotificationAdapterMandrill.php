@@ -2,7 +2,6 @@
 
 namespace Rplus\Notifications;
 
-require_once 'adapters/Mandrill/Mandrill.php';
 /**
  * Class NotificationAdapterMandrill
  *
