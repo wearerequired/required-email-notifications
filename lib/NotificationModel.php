@@ -2,6 +2,8 @@
 
 namespace Rplus\Notifications;
 
+use Exception;
+
 class NotificationModel {
 
     /**
@@ -114,7 +116,7 @@ class NotificationModel {
          * Custom Post Type Labels
          * @var array
          */
-        $labels = \apply_filters( 'rplus_notifications/filter/types/notification/labels',
+        $labels = apply_filters( 'rplus_notifications/filter/types/notification/labels',
             array(
                 'name' =>               _x( 'Notifications', 'notification', 'rplusnotifications' ),
                 'singular_name' =>      _x( 'Notification', 'notification', 'rplusnotifications' ),
@@ -130,7 +132,7 @@ class NotificationModel {
          * Custom Post Type Args
          * @var array
          */
-        $args = \apply_filters( 'rplus_notifications/filter/types/notification/args',
+        $args = apply_filters( 'rplus_notifications/filter/types/notification/args',
             array(
                 'labels' =>                 $labels,
                 'hierarchical' =>           false,
@@ -173,7 +175,7 @@ class NotificationModel {
         /**
          * Register our Custom Post Type with WordPress
          */
-        \register_post_type( self::$post_type, $args );
+        register_post_type( self::$post_type, $args );
 
         /**
          * Modify wp-admin columns for NotificationModel
@@ -205,7 +207,7 @@ class NotificationModel {
 
                 // show all recipients
                 case 'rplus_recipient':
-                    $recipients = \get_post_meta( $post_id, 'rplus_recipient', true );
+                    $recipients = get_post_meta( $post_id, 'rplus_recipient', true );
                     if ( count($recipients) ) {
                         echo '<ul style="margin: 0;">';
                         foreach ($recipients as $r) {
@@ -219,7 +221,7 @@ class NotificationModel {
 
                 case 'rplus_state':
 
-                    switch (\get_post_meta( $post_id, 'rplus_state', true )) {
+                    switch (get_post_meta( $post_id, 'rplus_state', true )) {
                         case NotificationState::ISNEW:
                             printf( '<strong>%s</strong> (%s)', __('New', 'rplusnotifications'), __('to be processed', 'rplusnotifications') );
                             break;
@@ -234,7 +236,7 @@ class NotificationModel {
                             break;
                     }
 
-                    $last_executed = \get_post_meta( $post_id, 'rplus_last_execution_time', true );
+                    $last_executed = get_post_meta( $post_id, 'rplus_last_execution_time', true );
                     if ( ! empty( $last_executed ) ) {
 
                         echo '<br /><strong>'.__('Executed: ', 'rplusnotifications').'</strong>';
@@ -244,7 +246,7 @@ class NotificationModel {
                     break;
 
                 case 'rplus_send_on':
-                    echo date( 'd.m.Y H:i', strtotime( \get_post_meta( $post_id, 'rplus_send_on', true ) ) );
+                    echo date( 'd.m.Y H:i', strtotime( get_post_meta( $post_id, 'rplus_send_on', true ) ) );
                     break;
 
                 // Don't show anything by default
@@ -270,13 +272,13 @@ class NotificationModel {
                     NotificationModel::outputNotificationState( $post->ID );
                     echo '</p>';
 
-                    $last_executed = \get_post_meta( $post->ID, 'rplus_last_execution_time', true );
+                    $last_executed = get_post_meta( $post->ID, 'rplus_last_execution_time', true );
                     if ( ! empty( $last_executed ) ) {
 
                         echo '<p><strong>'.__('Executed: ', 'rplusnotifications') . '</strong>' . date( 'd.m.Y H:i:s', $last_executed ) . '</p>';
                     }
 
-                    echo '<p><strong>'.__('Used Adapter: ', 'rplusnotifications').'</strong>'.\get_post_meta( $post->ID, 'rplus_adapter', true ).'</p>';
+                    echo '<p><strong>'.__('Used Adapter: ', 'rplusnotifications').'</strong>'.get_post_meta( $post->ID, 'rplus_adapter', true ).'</p>';
 
                 },
                 NotificationModel::$post_type,
@@ -294,7 +296,7 @@ class NotificationModel {
      */
     public static function outputRecipientsList( $post_id ) {
 
-        $recipients = \get_post_meta( $post_id, 'rplus_recipient', true );
+        $recipients = get_post_meta( $post_id, 'rplus_recipient', true );
         if ( count($recipients) ) {
             echo '<ul style="margin: 0;">';
             foreach ($recipients as $r) {
@@ -314,7 +316,7 @@ class NotificationModel {
      */
     public static function outputNotificationState( $post_id ) {
 
-        switch (\get_post_meta( $post_id, 'rplus_state', true )) {
+        switch (get_post_meta( $post_id, 'rplus_state', true )) {
             case NotificationState::ISNEW:
                 printf( '<strong>%s</strong> (%s)', __('New', 'rplusnotifications'), __('to be processed', 'rplusnotifications') );
                 break;
@@ -341,19 +343,19 @@ class NotificationModel {
             return false;
         }
 
-        $this->setAdapter( \get_post_meta( $this->id, 'rplus_adapter', true ) );
-        $this->setBody( \get_post_meta( $this->id, 'rplus_mail_body', true ) );
-        $this->setState( \get_post_meta( $this->id, 'rplus_state', true ) );
+        $this->setAdapter( get_post_meta( $this->id, 'rplus_adapter', true ) );
+        $this->setBody( get_post_meta( $this->id, 'rplus_mail_body', true ) );
+        $this->setState( get_post_meta( $this->id, 'rplus_state', true ) );
         $this->setSubject( $this->post->post_title );
-        $this->setSchedule( \get_post_meta( $this->id, 'rplus_send_on', true ) );
-        $this->setErrorMessage( \get_post_meta( $this->id, 'rplus_error_message', true ) );
+        $this->setSchedule( get_post_meta( $this->id, 'rplus_send_on', true ) );
+        $this->setErrorMessage( get_post_meta( $this->id, 'rplus_error_message', true ) );
 
-        $this->sender_name = \get_post_meta( $this->id, 'rplus_sender_name', true );
-        $this->sender_email = \get_post_meta( $this->id, 'rplus_sender_email', true );
-        $this->recipient =  \get_post_meta( $this->id, 'rplus_recipient', true );
-        $this->cc =         \get_post_meta( $this->id, 'rplus_recipient_cc', true );
-        $this->bcc =        \get_post_meta( $this->id, 'rplus_recipient_bcc', true );
-        $this->attachment = \get_post_meta( $this->id, 'rplus_attachment', true );
+        $this->sender_name = get_post_meta( $this->id, 'rplus_sender_name', true );
+        $this->sender_email = get_post_meta( $this->id, 'rplus_sender_email', true );
+        $this->recipient =  get_post_meta( $this->id, 'rplus_recipient', true );
+        $this->cc =         get_post_meta( $this->id, 'rplus_recipient_cc', true );
+        $this->bcc =        get_post_meta( $this->id, 'rplus_recipient_bcc', true );
+        $this->attachment = get_post_meta( $this->id, 'rplus_attachment', true );
     }
 
     /**
@@ -367,7 +369,7 @@ class NotificationModel {
         $adapter_class = '\\Rplus\\Notifications\\NotificationAdapter'.$adapter;
 
         if ( ! class_exists( $adapter_class ) ) {
-            throw new \Exception( 'Adapter class "'.$adapter.'" does not exist!' );
+            throw new Exception( 'Adapter class "'.$adapter.'" does not exist!' );
         }
 
         $this->adapter = $adapter;
@@ -507,12 +509,12 @@ class NotificationModel {
 
         // file does not exist
         if ( ! is_file( $file ) ) {
-            throw new \Exception( 'There is no such file (' . $file . ').' );
+            throw new Exception( 'There is no such file (' . $file . ').' );
         }
 
         // File is not readable
         if ( ! is_readable( $file ) ) {
-            throw new \Exception( 'File is not readable (' . $file . ').' );
+            throw new Exception( 'File is not readable (' . $file . ').' );
         }
 
         $this->attachment[] = $file;
@@ -638,7 +640,7 @@ class NotificationModel {
 
             $adapter->execute( $this );
 
-            \update_post_meta( $this->id, 'rplus_last_execution_time', time() );
+            update_post_meta( $this->id, 'rplus_last_execution_time', time() );
 
             // check the new state of this notification (was probably updated in adapter execute())
             if ($this->state === NotificationState::ERROR) {
@@ -669,7 +671,7 @@ class NotificationModel {
 
         // exit here when no adapter is set!
         if (empty($this->adapter)) {
-            throw new \Exception('No adapter class was set, but we need one to process this notification!');
+            throw new Exception('No adapter class was set, but we need one to process this notification!');
         }
 
         $adapter_class = '\\Rplus\\Notifications\\NotificationAdapter'.$this->adapter;
@@ -685,7 +687,7 @@ class NotificationModel {
 
         // make some checks for data, we need at least a subject, body and recipient
         if ( false === $adapter->checkData($this) ) {
-            throw new \Exception('Not all mandatory fields are set, notification can\'t be saved.');
+            throw new Exception('Not all mandatory fields are set, notification can\'t be saved.');
         }
 
         // set defaults (state, send_on etc.) when not defined
@@ -699,7 +701,7 @@ class NotificationModel {
         } else {
 
             // just save some values, we need the post id to later set all properties
-            $this->id = \wp_insert_post( array(
+            $this->id = wp_insert_post( array(
                 'post_status' => 'draft',
                 'post_date' => date('Y-m-d H:i:s'),
                 'post_type' => self::$post_type
@@ -719,17 +721,17 @@ class NotificationModel {
         ) );
 
         // set all other properties
-        \update_post_meta( $this->id, 'rplus_mail_body', $this->getBody() );
-        \update_post_meta( $this->id, 'rplus_adapter', $this->adapter );
-        \update_post_meta( $this->id, 'rplus_sender_email', $this->sender_email );
-        \update_post_meta( $this->id, 'rplus_sender_name', $this->sender_name );
-        \update_post_meta( $this->id, 'rplus_recipient', $this->recipient );
-        \update_post_meta( $this->id, 'rplus_recipient_cc', $this->cc );
-        \update_post_meta( $this->id, 'rplus_recipient_bcc', $this->bcc );
-        \update_post_meta( $this->id, 'rplus_attachment', $this->attachment );
-        \update_post_meta( $this->id, 'rplus_send_on', $this->send_on );
-        \update_post_meta( $this->id, 'rplus_state', $this->state );
-        \update_post_meta( $this->id, 'rplus_error_message', $this->error_message );
+        update_post_meta( $this->id, 'rplus_mail_body', $this->getBody() );
+        update_post_meta( $this->id, 'rplus_adapter', $this->adapter );
+        update_post_meta( $this->id, 'rplus_sender_email', $this->sender_email );
+        update_post_meta( $this->id, 'rplus_sender_name', $this->sender_name );
+        update_post_meta( $this->id, 'rplus_recipient', $this->recipient );
+        update_post_meta( $this->id, 'rplus_recipient_cc', $this->cc );
+        update_post_meta( $this->id, 'rplus_recipient_bcc', $this->bcc );
+        update_post_meta( $this->id, 'rplus_attachment', $this->attachment );
+        update_post_meta( $this->id, 'rplus_send_on', $this->send_on );
+        update_post_meta( $this->id, 'rplus_state', $this->state );
+        update_post_meta( $this->id, 'rplus_error_message', $this->error_message );
 
         return true;
     }

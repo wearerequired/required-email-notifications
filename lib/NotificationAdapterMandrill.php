@@ -2,6 +2,10 @@
 
 namespace Rplus\Notifications;
 
+use Exception;
+use Mandrill;
+use Mandrill_Error;
+
 /**
  * Class NotificationAdapterMandrill
  *
@@ -48,12 +52,12 @@ class NotificationAdapterMandrill implements NotificationAdapter {
         try {
 
 			// When api key is defined via constant, take that.
-			$api_key = \get_option( 'rplus_notifications_adapters_mandrill_apikey' );
+			$api_key = get_option( 'rplus_notifications_adapters_mandrill_apikey' );
 			if ( defined( 'RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY' ) ) {
 				$api_key = RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY;
 			}
 
-            $this->mandrill = new \Mandrill( $api_key );
+            $this->mandrill = new Mandrill( $api_key );
 
             // check if we got a valid API Key
             $this->mandrill->users->ping();
@@ -61,7 +65,7 @@ class NotificationAdapterMandrill implements NotificationAdapter {
             // when ping works, the API Key is valid.
             $this->valid_api_key = true;
 
-        } catch (\Exception $e) {
+        } catch ( Exception $e) {
 
             $this->valid_api_key = false;
             $this->error = get_class($e) . ' - ' . $e->getMessage();
@@ -130,11 +134,11 @@ class NotificationAdapterMandrill implements NotificationAdapter {
             $response = $this->mandrill->messages->send( $message );
 
             // update post with mandrill message id
-            \update_post_meta( $model->getId(), 'rplus_mandrill_response', $response );
+            update_post_meta( $model->getId(), 'rplus_mandrill_response', $response );
 
             $model->setState( NotificationState::COMPLETE );
 
-        } catch (\Mandrill_Error $e) {
+        } catch ( Mandrill_Error $e) {
 
             $model->setState( NotificationState::ERROR );
             $this->error = get_class($e) . ' - ' . $e->getMessage();
@@ -205,11 +209,11 @@ class NotificationAdapterMandrill implements NotificationAdapter {
      */
     public static function isConfigured() {
 
-        if ( ! \get_option( 'rplus_notifications_adapters_mandrill_apikey' ) && ! defined( 'RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY' ) ) {
+        if ( ! get_option( 'rplus_notifications_adapters_mandrill_apikey' ) && ! defined( 'RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY' ) ) {
             return false;
         }
 
-        if ( ! \get_option( 'rplus_notifications_sender_email' ) ) {
+        if ( ! get_option( 'rplus_notifications_sender_email' ) ) {
             return false;
         }
 

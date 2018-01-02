@@ -2,6 +2,9 @@
 
 namespace Rplus\Notifications;
 
+use Iterator;
+use WP_Query;
+
 /**
  * Class NotificationModelCollection
  *
@@ -9,7 +12,7 @@ namespace Rplus\Notifications;
  *
  * @package Rplus\Notifications
  */
-class NotificationModelCollection implements \Iterator {
+class NotificationModelCollection implements Iterator {
 
     private $collection = array();
 
@@ -38,7 +41,7 @@ class NotificationModelCollection implements \Iterator {
             'fields' => 'ids'
         ));
 
-        $query = new \WP_Query( $args );
+        $query = new WP_Query( $args );
 
         if ( $query->have_posts() ) {
             foreach ($query->get_posts() as $id) {
