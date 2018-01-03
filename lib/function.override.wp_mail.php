@@ -135,8 +135,10 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
 
 		// Add attachments, if exist
 		if ( count( $attachments ) ) {
-			foreach ( $attachments as $attachment ) {
-				$notification->addAttachment( $attachment );
+			foreach ( $attachments as $attachment_name => $attachment_path ) {
+				$attachment_name = is_string( $attachment_name ) ? $attachment_name : '';
+
+				$notification->addAttachment( $attachment_path, $attachment_name );
 			}
 		}
 

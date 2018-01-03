@@ -90,7 +90,9 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 			'subject'    => $model->getSubject(),
 			'from_email' => $model->getSenderEmail(),
 			'from_name'  => $model->getSenderName(),
-			'headers'    => [ 'Reply-To' => $model->getSenderEmail() ],
+			'headers'    => [
+				'Reply-To' => $model->getSenderEmail(),
+			],
 			'to'         => [],
 		];
 
@@ -112,18 +114,13 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 		// add all file attachments
 		if ( false !== $model->getAttachments() ) {
 
-			foreach ( $model->getAttachments() as $attachment ) {
-
-				// get original filename
-				$filename = pathinfo( $attachment );
-
+			foreach ( $model->getAttachments() as $attachment_name => $attachment_path ) {
 				$message['attachments'][] = [
-					'type'    => $model->getFileMimeType( $attachment ),
-					'name'    => $filename['basename'],
-					'content' => base64_encode( file_get_contents( $attachment ) ),
+					'type'    => $model->getFileMimeType( $attachment_path ),
+					'name'    => $attachment_name,
+					'content' => base64_encode( file_get_contents( $attachment_path ) ),
 				];
 			}
-
 		}
 
 		try {

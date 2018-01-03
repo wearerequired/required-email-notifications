@@ -483,7 +483,7 @@ class NotificationModel {
 	/**
 	 * Set a notification message body
 	 *
-	 * @param $body string the message body
+	 * @param string $body The message body.
 	 * @return NotificationModel
 	 */
 	public function setBody( $body ) {
@@ -495,23 +495,28 @@ class NotificationModel {
 	/**
 	 * Add a notification attachment
 	 *
-	 * @param $file the file (full path)
+	 * @param string $path Path to the attachment.
+	 * @param string $name Optional. Attachment name.
 	 * @throws \Exception
 	 * @return NotificationModel
 	 */
-	public function addAttachment( $file ) {
+	public function addAttachment( $path, $name = '' ) {
 
 		// file does not exist
-		if ( ! is_file( $file ) ) {
-			throw new Exception( 'There is no such file (' . $file . ').' );
+		if ( ! is_file( $path ) ) {
+			throw new Exception( 'There is no such file (' . $path . ').' );
 		}
 
 		// File is not readable
-		if ( ! is_readable( $file ) ) {
-			throw new Exception( 'File is not readable (' . $file . ').' );
+		if ( ! is_readable( $path ) ) {
+			throw new Exception( 'File is not readable (' . $path . ').' );
 		}
 
-		$this->attachment[] = $file;
+		if ( ! $name ) {
+			$name = basename( $path );
+		}
+
+		$this->attachment[ $name ] = $path;
 
 		return $this;
 	}
