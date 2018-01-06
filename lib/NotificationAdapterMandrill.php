@@ -52,9 +52,10 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 		try {
 
 			// When api key is defined via constant, take that.
-			$api_key = get_option( 'rplus_notifications_adapters_mandrill_apikey' );
 			if ( defined( 'RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY' ) ) {
 				$api_key = RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY;
+			} else {
+				$api_key = get_option( 'rplus_notifications_adapters_mandrill_apikey' );
 			}
 
 			$this->mandrill = new Mandrill( $api_key );
@@ -199,7 +200,7 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 	 * @return bool
 	 */
 	public static function isConfigured() {
-		if ( ! get_option( 'rplus_notifications_adapters_mandrill_apikey' ) && ! defined( 'RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY' ) ) {
+		if ( ! defined( 'RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY' ) && ! get_option( 'rplus_notifications_adapters_mandrill_apikey' ) ) {
 			return false;
 		}
 
