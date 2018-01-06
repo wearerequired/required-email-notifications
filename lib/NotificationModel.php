@@ -237,15 +237,14 @@ class NotificationModel {
 
 					$last_executed = get_post_meta( $post_id, 'rplus_last_execution_time', true );
 					if ( ! empty( $last_executed ) ) {
-
 						echo '<br /><strong>' . __( 'Executed: ', 'rplusnotifications' ) . '</strong>';
-						echo date( 'd.m.Y H:i:s', $last_executed );
+						echo get_date_from_gmt( date( 'Y-m-d H:i:s', $last_executed ), 'd.m.Y H:i:s' );
 					}
 
 					break;
 
 				case 'rplus_send_on':
-					echo date( 'd.m.Y H:i', strtotime( get_post_meta( $post_id, 'rplus_send_on', true ) ) );
+					echo get_date_from_gmt( get_post_meta( $post_id, 'rplus_send_on', true ), 'd.m.Y H:i:s' );
 					break;
 
 				// Don't show anything by default
@@ -273,8 +272,7 @@ class NotificationModel {
 
 					$last_executed = get_post_meta( $post->ID, 'rplus_last_execution_time', true );
 					if ( ! empty( $last_executed ) ) {
-
-						echo '<p><strong>' . __( 'Executed: ', 'rplusnotifications' ) . '</strong>' . date( 'd.m.Y H:i:s', $last_executed ) . '</p>';
+						echo '<p><strong>' . __( 'Executed: ', 'rplusnotifications' ) . '</strong>' . get_date_from_gmt( date( 'Y-m-d H:i:s', $last_executed ), 'd.m.Y H:i:s' ) . '</p>';
 					}
 
 					echo '<p><strong>' . __( 'Used Adapter: ', 'rplusnotifications' ) . '</strong>' . get_post_meta( $post->ID, 'rplus_adapter', true ) . '</p>';
