@@ -419,7 +419,7 @@ class NotificationModel {
 	}
 
 	/**
-	 * @param $subject
+	 * @param string $subject
 	 * @return NotificationModel allows chaining
 	 */
 	public function setSubject( $subject ) {
@@ -431,8 +431,8 @@ class NotificationModel {
 	/**
 	 * Add a notification recipient
 	 *
-	 * @param      $email the email address
-	 * @param null $name  optional name
+	 * @param string      $email the email address
+	 * @param string|null $name  optional name
 	 *
 	 * @return NotificationModel allows chaining
 	 */
@@ -445,8 +445,8 @@ class NotificationModel {
 	/**
 	 * Add a notification CC recipient
 	 *
-	 * @param      $email the email address
-	 * @param null $name  optional name
+	 * @param string      $email the email address
+	 * @param string|null $name  optional name
 	 *
 	 * @return NotificationModel allows chaining
 	 */
@@ -459,7 +459,7 @@ class NotificationModel {
 	/**
 	 * set the notification BCC recipient, just one email address possible here
 	 *
-	 * @param $email the email address
+	 * @param string $email the email address
 	 *
 	 * @return NotificationModel allows chaining
 	 */
