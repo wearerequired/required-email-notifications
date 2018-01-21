@@ -125,8 +125,8 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
 			$notification->addCcRecipient( $recipient );
 		}
 
-		if ( 1 === count( $bcc ) ) {
-			$notification->setBcc( reset( $bcc ) );
+		foreach ( $bcc as $recipient ) {
+			$notification->addBccRecipient( $recipient );
 		}
 
 		if ( null !== $from_email ) {

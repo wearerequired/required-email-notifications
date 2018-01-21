@@ -31,19 +31,24 @@ class NotificationModel {
 	private $subject = null;
 
 	/**
-	 * @var array recipients for this notification
+	 * TO recipients for this notification.
+	 *
+	 * @var array
 	 */
 	private $recipient = [];
 
 	/**
-	 * @var array carbon copy
+	 * CC recipients for this notification.
+	 * @var array
 	 */
 	private $cc = [];
 
 	/**
-	 * @var string blind carbon copy
+	 * BCC recipients for this notification.
+	 *
+	 * @var array
 	 */
-	private $bcc = null;
+	private $bcc = [];
 
 	/**
 	 * @var string the message body
@@ -429,7 +434,7 @@ class NotificationModel {
 	}
 
 	/**
-	 * Add a notification recipient
+	 * Add a notification recipient.
 	 *
 	 * @param string      $email the email address
 	 * @param string|null $name  optional name
@@ -443,7 +448,7 @@ class NotificationModel {
 	}
 
 	/**
-	 * Add a notification CC recipient
+	 * Add a notification CC recipient.
 	 *
 	 * @param string      $email the email address
 	 * @param string|null $name  optional name
@@ -457,14 +462,30 @@ class NotificationModel {
 	}
 
 	/**
-	 * set the notification BCC recipient, just one email address possible here
+	 * Add a notification BCC recipient.
+	 *
+	 * @param string      $email the email address
+	 * @param string|null $name  optional name
+	 *
+	 * @return NotificationModel allows chaining
+	 */
+	public function addBccRecipient( $email, $name = null ) {
+		$this->bcc[] = [ $email, $name ];
+
+		return $this;
+	}
+
+	/**
+	 * Set the notification BCC recipient, just one email address possible here
+	 *
+	 * @deprecated Use addBccRecipient().
 	 *
 	 * @param string $email the email address
 	 *
 	 * @return NotificationModel allows chaining
 	 */
 	public function setBcc( $email ) {
-		$this->bcc = $email;
+		$this->bcc = [ $email, null ];
 
 		return $this;
 	}
@@ -472,10 +493,17 @@ class NotificationModel {
 	/**
 	 * get notifications bcc recipient email
 	 *
+	 * @deprecated Use getBccRecipient().
+	 *
 	 * @return string|null
 	 */
 	public function getBcc() {
-		return $this->bcc;
+		if ( ! $this->bcc ) {
+			return null;
+		}
+
+		$bcc = reset( $this->bcc );
+		return $bcc[0];
 	}
 
 	/**
@@ -601,12 +629,30 @@ class NotificationModel {
 	}
 
 	/**
-	 * Get the notification recipient(s)
+	 * Get the notification recipient(s).
 	 *
 	 * @return array
 	 */
 	public function getRecipient() {
 		return $this->recipient;
+	}
+
+	/**
+	 * Get the notification CC recipient(s).
+	 *
+	 * @return array
+	 */
+	public function getCcRecipient() {
+		return $this->cc;
+	}
+
+	/**
+	 * Get the notification BCC recipient(s).
+	 *
+	 * @return array
+	 */
+	public function getBccRecipient() {
+		return $this->bcc;
 	}
 
 	/**
