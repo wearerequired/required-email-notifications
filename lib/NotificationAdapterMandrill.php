@@ -97,19 +97,29 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 			'to'         => [],
 		];
 
-		// add recipients (could be more than one)
-		foreach ( $model->getRecipient() as $r ) {
-
+		// Add recipients.
+		foreach ( $model->getRecipient() as $recipient ) {
 			$message['to'][] = [
-				'email' => $r[0],
-				'name'  => $r[1],
+				'email' => $recipient[0],
+				'name'  => $recipient[1],
+				'type'  => 'to',
 			];
-
 		}
 
-		// blind carbon copy, for the secret agents
-		if ( $model->getBcc() ) {
-			$message['bcc_address'] = $model->getBcc();
+		foreach ( $model->getCcRecipient() as $recipient ) {
+			$message['to'][] = [
+				'email' => $recipient[0],
+				'name'  => $recipient[1],
+				'type'  => 'cc',
+			];
+		}
+
+		foreach ( $model->getBccRecipient() as $recipient ) {
+			$message['to'][] = [
+				'email' => $recipient[0],
+				'name'  => $recipient[1],
+				'type'  => 'bcc',
+			];
 		}
 
 		// add all file attachments
