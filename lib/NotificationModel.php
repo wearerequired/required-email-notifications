@@ -201,6 +201,39 @@ class NotificationModel {
 		} );
 
 		/**
+		 * Modify sortable columns for NotificationModel
+		 *
+		 * @uses add_filter( $tag, $function_to_add, $priority = 10, $accepted_args = 1 )
+		 */
+		add_filter( 'manage_edit-' . self::$post_type . '_sortable_columns', function ( $columns ) {
+			$columns['rplus_recipient'] = 'rplus_recipient';
+			$columns['rplus_send_on']   = 'rplus_send_on';
+
+			return $columns;
+		} );
+
+		/**
+		 * Modify posts query to allow sorting after custom meta values.
+		 */
+		add_action( 'pre_get_posts', function( $query ) {
+			/** @var \WP_Query $query */
+			if ( ! is_admin() ) {
+				return;
+			}
+
+			if ( 'rplus_recipient' === $query->get( 'orderby' ) ) {
+				$query->set( 'meta_key', 'rplus_recipient' );
+				$query->set( 'orderby', 'meta_value' );
+			}
+
+			if ( 'rplus_send_on' === $query->get( 'orderby' ) ) {
+				$query->set( 'meta_key', 'rplus_send_on' );
+				$query->set( 'orderby', 'meta_value' );
+			}
+		} );
+
+
+		/**
 		 * Fill custom wp-admin columns for CompanyModel
 		 *
 		 * @uses add_action( $tag, $function_to_add, $priority = 10, $accepted_args = 1 )
