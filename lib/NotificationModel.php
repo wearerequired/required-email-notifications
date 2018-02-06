@@ -217,18 +217,19 @@ class NotificationModel {
 		 */
 		add_action( 'pre_get_posts', function( $query ) {
 			/** @var \WP_Query $query */
-			if ( ! is_admin() ) {
-				return;
-			}
 
-			if ( 'rplus_recipient' === $query->get( 'orderby' ) ) {
-				$query->set( 'meta_key', 'rplus_recipient' );
-				$query->set( 'orderby', 'meta_value' );
-			}
+			$screen = get_current_screen();
 
-			if ( 'rplus_send_on' === $query->get( 'orderby' ) ) {
-				$query->set( 'meta_key', 'rplus_send_on' );
-				$query->set( 'orderby', 'meta_value' );
+			if ( $screen && 'edit-' . self::$post_type === $screen->id ) {
+				if ( 'rplus_recipient' === $query->get( 'orderby' ) ) {
+					$query->set( 'meta_key', 'rplus_recipient' );
+					$query->set( 'orderby', 'meta_value' );
+				}
+
+				if ( 'rplus_send_on' === $query->get( 'orderby' ) ) {
+					$query->set( 'meta_key', 'rplus_send_on' );
+					$query->set( 'orderby', 'meta_value' );
+				}
 			}
 		} );
 
