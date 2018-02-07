@@ -218,6 +218,10 @@ class NotificationModel {
 		add_action( 'pre_get_posts', function( $query ) {
 			/** @var \WP_Query $query */
 
+			if ( ! is_admin() ) {
+				return;
+			}
+
 			$screen = get_current_screen();
 
 			if ( $screen && 'edit-' . self::$post_type === $screen->id ) {
