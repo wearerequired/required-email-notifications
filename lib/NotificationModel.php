@@ -226,44 +226,46 @@ class NotificationModel {
 
 			$screen = get_current_screen();
 
-			if ( $screen && 'edit-' . self::$post_type === $screen->id ) {
-				if ( 'rplus_recipient' === $query->get( 'orderby' ) ) {
-					$query->set( 'meta_key', 'rplus_recipient' );
-					$query->set( 'orderby', 'meta_value' );
-				}
+			if ( ! $screen || 'edit-' . self::$post_type !== $screen->id ) {
+				return;
+			}
 
-				if ( 'rplus_send_on' === $query->get( 'orderby' ) ) {
-					$query->set( 'meta_key', 'rplus_send_on' );
-					$query->set( 'orderby', 'meta_value' );
-				}
+			if ( 'rplus_recipient' === $query->get( 'orderby' ) ) {
+				$query->set( 'meta_key', 'rplus_recipient' );
+				$query->set( 'orderby', 'meta_value' );
+			}
 
-				if ( '' !== $query->get( 's' ) ) {
-					$search_query_where = null;
+			if ( 'rplus_send_on' === $query->get( 'orderby' ) ) {
+				$query->set( 'meta_key', 'rplus_send_on' );
+				$query->set( 'orderby', 'meta_value' );
+			}
 
-					add_filter( 'posts_search', function ( $search ) use ( &$search_query_where ) {
-						remove_filter( current_filter(), __FUNCTION__ );
+			if ( '' !== $query->get( 's' ) ) {
+				$search_query_where = null;
 
-						$search_query_where = $search;
-
-						return $search;
-					} );
-
-					// Use nested query to also search in post meta.
-					add_filter( 'posts_where', function ( $where, $query ) use ( &$search_query_where ) {
-						global $wpdb;
-
-						$post_in_query = $wpdb->prepare(
-							"( {$wpdb->posts}.ID IN ( SELECT {$wpdb->postmeta}.post_id FROM {$wpdb->postmeta} WHERE {$wpdb->postmeta}.meta_key = 'rplus_recipient' AND {$wpdb->postmeta}.meta_value LIKE %s ) )",
-							'%' . $query->get( 's' ) . '%'
-						);
-
-						$search_query_where_or = preg_replace( '/^ AND \(/', ' AND (' . $post_in_query . ' OR ', $search_query_where, 1 );
-
-						return str_replace( $search_query_where, $search_query_where_or, $where );
-					}, 10, 2 );
-
+				add_filter( 'posts_search', function ( $search ) use ( &$search_query_where ) {
 					remove_filter( current_filter(), __FUNCTION__ );
-				}
+
+					$search_query_where = $search;
+
+					return $search;
+				} );
+
+				// Use nested query to also search in post meta.
+				add_filter( 'posts_where', function ( $where, $query ) use ( &$search_query_where ) {
+					global $wpdb;
+
+					$post_in_query = $wpdb->prepare(
+						"( {$wpdb->posts}.ID IN ( SELECT {$wpdb->postmeta}.post_id FROM {$wpdb->postmeta} WHERE {$wpdb->postmeta}.meta_key = 'rplus_recipient' AND {$wpdb->postmeta}.meta_value LIKE %s ) )",
+						'%' . $query->get( 's' ) . '%'
+					);
+
+					$search_query_where_or = preg_replace( '/^ AND \(/', ' AND (' . $post_in_query . ' OR ', $search_query_where, 1 );
+
+					return str_replace( $search_query_where, $search_query_where_or, $where );
+				}, 10, 2 );
+
+				remove_filter( current_filter(), __FUNCTION__ );
 			}
 		} );
 
