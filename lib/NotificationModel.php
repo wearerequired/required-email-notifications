@@ -248,7 +248,7 @@ class NotificationModel {
 					} );
 
 					// Use nested query to also search in post meta.
-					add_filter( 'posts_where', function ( $where, $query ) use ( &$meta_query_where, &$search_query_where ) {
+					add_filter( 'posts_where', function ( $where, $query ) use ( &$search_query_where ) {
 						global $wpdb;
 
 						$post_in_query = $wpdb->prepare(
