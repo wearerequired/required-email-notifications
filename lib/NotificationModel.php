@@ -4,6 +4,7 @@ namespace Rplus\Notifications;
 
 use Exception;
 use WP_Meta_Query;
+use WP_Query;
 
 class NotificationModel {
 
@@ -217,7 +218,7 @@ class NotificationModel {
 		 * Modify posts query to allow sorting after custom meta values.
 		 */
 		add_action( 'pre_get_posts', function( $query ) {
-			/** @var \WP_Query $query */
+			/** @var WP_Query $query */
 
 			if ( ! is_admin() || ! $query->is_main_query()  ) {
 				return;
