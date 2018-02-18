@@ -208,37 +208,12 @@ class NotificationModel {
 		add_action( 'manage_' . self::$post_type . '_posts_custom_column', function ( $column, $post_id ) {
 
 			switch ( $column ) {
-
-				// show all recipients
 				case 'rplus_recipient':
-					$recipients = get_post_meta( $post_id, 'rplus_recipient', true );
-					if ( count( $recipients ) ) {
-						echo '<ul style="margin: 0;">';
-						foreach ( $recipients as $r ) {
-							echo '<li>';
-							echo $r[0] . ( isset( $r[1] ) ? ' (' . $r[1] . ')' : '' );
-							echo '</li>';
-						}
-						echo '</ul>';
-					}
+					NotificationModel::outputRecipientsList( $post_id );
 					break;
 
 				case 'rplus_state':
-
-					switch ( get_post_meta( $post_id, 'rplus_state', true ) ) {
-						case NotificationState::ISNEW:
-							printf( '<strong>%s</strong> (%s)', __( 'New', 'rplusnotifications' ), __( 'to be processed', 'rplusnotifications' ) );
-							break;
-						case NotificationState::INPROGRESS:
-							printf( '<strong>%s</strong> (%s)', __( 'In progress', 'rplusnotifications' ), __( 'still processing', 'rplusnotifications' ) );
-							break;
-						case NotificationState::COMPLETE:
-							printf( '<strong>%s</strong>', __( 'Completed', 'rplusnotifications' ) );
-							break;
-						case NotificationState::ERROR:
-							printf( '<strong>%s</strong> (%s)', __( 'Error', 'rplusnotifications' ), get_post_meta( $post_id, 'rplus_error_message', true ) );
-							break;
-					}
+					NotificationModel::outputNotificationState( $post_id );
 
 					$last_executed = get_post_meta( $post_id, 'rplus_last_execution_time', true );
 					if ( ! empty( $last_executed ) ) {
