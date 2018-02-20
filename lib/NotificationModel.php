@@ -219,7 +219,7 @@ class NotificationModel {
 		add_action( 'pre_get_posts', function( $query ) {
 			/** @var WP_Query $query */
 
-			if ( ! is_admin() || ! $query->is_main_query()  ) {
+			if ( ! $query->is_admin || ! $query->is_main_query()  ) {
 				return;
 			}
 
