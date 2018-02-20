@@ -256,7 +256,7 @@ class NotificationModel {
 
 					$post_in_query = $wpdb->prepare(
 						"( {$wpdb->posts}.ID IN ( SELECT {$wpdb->postmeta}.post_id FROM {$wpdb->postmeta} WHERE {$wpdb->postmeta}.meta_key = 'rplus_recipient' AND {$wpdb->postmeta}.meta_value LIKE %s ) )",
-						'%' . $query->get( 's' ) . '%'
+						'%' . $wpdb->esc_like( $query->get( 's' ) ) . '%'
 					);
 
 					$search_query_where_or = preg_replace( '/^ AND \(/', ' AND (' . $post_in_query . ' OR ', $search_query_where, 1 );
