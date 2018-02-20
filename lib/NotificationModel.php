@@ -3,7 +3,6 @@
 namespace Rplus\Notifications;
 
 use Exception;
-use WP_Meta_Query;
 use WP_Query;
 
 class NotificationModel {
