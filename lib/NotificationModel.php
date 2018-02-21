@@ -219,7 +219,7 @@ class NotificationModel {
 		add_action( 'pre_get_posts', function( $query ) {
 			/** @var WP_Query $query */
 
-			if ( ! $query->is_admin || ! $query->is_main_query()  ) {
+			if ( ! $query->is_admin || ! $query->is_main_query() ) {
 				return;
 			}
 
@@ -259,7 +259,9 @@ class NotificationModel {
 						'%' . $wpdb->esc_like( $query->get( 's' ) ) . '%'
 					);
 
-					$search_query_where_or = preg_replace( '/^ AND \(/', ' AND (' . $post_in_query . ' OR ', $search_query_where, 1 );
+					// A backslash in the replacement parameter of preg_replace() must be doubled.
+					$post_in_query_slashed = addcslashes( $post_in_query, '\\' );
+					$search_query_where_or = preg_replace( '/^ AND \(/', ' AND (' . $post_in_query_slashed . ' OR ', $search_query_where, 1 );
 
 					return str_replace( $search_query_where, $search_query_where_or, $where );
 				}, 10, 2 );
@@ -267,7 +269,6 @@ class NotificationModel {
 				remove_filter( current_filter(), __FUNCTION__ );
 			}
 		} );
-
 
 		/**
 		 * Fill custom wp-admin columns for CompanyModel
