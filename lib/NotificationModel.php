@@ -3,6 +3,7 @@
 namespace Rplus\Notifications;
 
 use Exception;
+use WP_Query;
 
 class NotificationModel {
 
@@ -198,6 +199,75 @@ class NotificationModel {
 			];
 
 			return $columns;
+		} );
+
+		/**
+		 * Modify sortable columns for NotificationModel
+		 *
+		 * @uses add_filter( $tag, $function_to_add, $priority = 10, $accepted_args = 1 )
+		 */
+		add_filter( 'manage_edit-' . self::$post_type . '_sortable_columns', function ( $columns ) {
+			$columns['rplus_recipient'] = 'rplus_recipient';
+			$columns['rplus_send_on']   = 'rplus_send_on';
+
+			return $columns;
+		} );
+
+		/**
+		 * Modify posts query to allow sorting after custom meta values.
+		 */
+		add_action( 'pre_get_posts', function( $query ) {
+			/** @var WP_Query $query */
+
+			if ( ! $query->is_admin || ! $query->is_main_query() ) {
+				return;
+			}
+
+			$screen = get_current_screen();
+
+			if ( ! $screen || 'edit-' . self::$post_type !== $screen->id ) {
+				return;
+			}
+
+			if ( 'rplus_recipient' === $query->get( 'orderby' ) ) {
+				$query->set( 'meta_key', 'rplus_recipient' );
+				$query->set( 'orderby', 'meta_value' );
+			}
+
+			if ( 'rplus_send_on' === $query->get( 'orderby' ) ) {
+				$query->set( 'meta_key', 'rplus_send_on' );
+				$query->set( 'orderby', 'meta_value' );
+			}
+
+			if ( '' !== $query->get( 's' ) ) {
+				$search_query_where = null;
+
+				add_filter( 'posts_search', function ( $search ) use ( &$search_query_where ) {
+					remove_filter( current_filter(), __FUNCTION__ );
+
+					$search_query_where = $search;
+
+					return $search;
+				} );
+
+				// Use nested query to also search in post meta.
+				add_filter( 'posts_where', function ( $where, $query ) use ( &$search_query_where ) {
+					global $wpdb;
+
+					$post_in_query = $wpdb->prepare(
+						"( {$wpdb->posts}.ID IN ( SELECT {$wpdb->postmeta}.post_id FROM {$wpdb->postmeta} WHERE {$wpdb->postmeta}.meta_key = 'rplus_recipient' AND {$wpdb->postmeta}.meta_value LIKE %s ) )",
+						'%' . $wpdb->esc_like( $query->get( 's' ) ) . '%'
+					);
+
+					// A backslash in the replacement parameter of preg_replace() must be doubled.
+					$post_in_query_slashed = addcslashes( $post_in_query, '\\' );
+					$search_query_where_or = preg_replace( '/^ AND \(/', ' AND (' . $post_in_query_slashed . ' OR ', $search_query_where, 1 );
+
+					return str_replace( $search_query_where, $search_query_where_or, $where );
+				}, 10, 2 );
+
+				remove_filter( current_filter(), __FUNCTION__ );
+			}
 		} );
 
 		/**
