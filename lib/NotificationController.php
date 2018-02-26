@@ -178,7 +178,7 @@ final class NotificationController {
 			__( 'Madrill API Key', 'rplusnotifications' ),
 			function() {
 				if ( defined( 'RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY' ) ) {
-					?><input type="text" class="regular-text" readonly value="***************<?php echo substr( RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY, strlen( RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY ) - 4, 4 )?>">
+					?><input type="text" class="regular-text" readonly value="***************<?php echo substr( RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY, -4 )?>">
 					<p class="description"><?php esc_html_e( 'Mandrill API Key ist via wp-config.php definiert', 'rplusnotifications' ); ?></p>
 					<input type="hidden" id="rplus_notifications_adapters_mandrill_apikey"
 							 name="rplus_notifications_adapters_mandrill_apikey" value=""/><?php
