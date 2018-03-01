@@ -214,6 +214,44 @@ class NotificationModel {
 		} );
 
 		/**
+		 * Removes "Quick Edit" action and changes label of "Edit" action to "View".
+		 *
+		 * @param array   $actions An array of row action links.
+		 * @param WP_Post $post    The post object.
+		 * @return array An array of row action links.
+		 */
+		add_filter( 'post_row_actions', function( $actions, $post ) {
+			if ( \Rplus\Notifications\NotificationModel::$post_type !== $post->post_type ) {
+				return $actions;
+			}
+
+			// Remove "Quick Edit".
+			unset( $actions['inline hide-if-no-js'] );
+
+			// Rename "Edit" to "View".
+			if ( isset( $actions['edit'] ) ) {
+				$title = _draft_or_post_title( $post );
+
+				/* translators: %s: post title */
+				$aria_label = esc_attr( sprintf( __( 'View &#8220;%s&#8221;', 'rplusnotifications' ), $title ) );
+
+				$actions['edit'] = preg_replace(
+					'#aria-label="(.*)"#',
+					'aria-label="' . $aria_label . '"',
+					$actions['edit']
+				);
+
+				$actions['edit'] = preg_replace(
+					'#>(.*)</a#',
+					'>' . __( 'View', 'rplusnotifications' ) . '</a',
+					$actions['edit']
+				);
+			}
+
+			return $actions;
+		}, 10, 2 );
+
+		/**
 		 * Modify posts query to allow sorting after custom meta values.
 		 */
 		add_action( 'pre_get_posts', function( $query ) {
