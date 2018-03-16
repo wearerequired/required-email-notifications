@@ -128,13 +128,18 @@ class NotificationModel {
 		 * @var array
 		 */
 		$labels = apply_filters( 'rplus_notifications/filter/types/notification/labels', [
-			'name'               => _x( 'Notifications', 'notification', 'rplusnotifications' ),
-			'singular_name'      => _x( 'Notification', 'notification', 'rplusnotifications' ),
-			'view_item'          => _x( 'View Notification', 'notification', 'rplusnotifications' ),
-			'search_items'       => _x( 'Search Notifications', 'notification', 'rplusnotifications' ),
-			'not_found'          => _x( 'No notifications found', 'notification', 'rplusnotifications' ),
-			'not_found_in_trash' => _x( 'No notifications found in Trash', 'notification', 'rplusnotifications' ),
-			'menu_name'          => _x( 'Notifications', 'notification', 'rplusnotifications' ),
+			'name'                  => _x( 'Notifications', 'post type general name', 'rplusnotifications' ),
+			'singular_name'         => _x( 'Notification', 'post type singular name', 'rplusnotifications' ),
+			'edit_item'             => __( 'View Notification', 'rplusnotifications' ),
+			'view_item'             => __( 'View Notification', 'rplusnotifications' ),
+			'search_items'          => __( 'Search Notifications', 'rplusnotifications' ),
+			'not_found'             => __( 'No notifications found', 'rplusnotifications' ),
+			'not_found_in_trash'    => __( 'No notifications found in Trash', 'rplusnotifications' ),
+			'menu_name'             => __( 'Notifications', 'rplusnotifications' ),
+			'all_items'             => __( 'All Notifications', 'rplusnotifications' ),
+			'filter_items_list'     => __( 'Filter notifications list', 'rplusnotifications' ),
+			'items_list_navigation' => __( 'Notifications list navigation', 'rplusnotifications' ),
+			'items_list'            => __( 'Notifications list', 'rplusnotifications' ),
 		] );
 
 		/**
@@ -143,22 +148,22 @@ class NotificationModel {
 		 * @var array
 		 */
 		$args = apply_filters( 'rplus_notifications/filter/types/notification/args', [
-			'labels'              => $labels,
-			'hierarchical'        => false,
-			'supports'            => [ 'title', 'editor' ],
-			'public'              => false,
-			'show_ui'             => true,
-			'show_in_menu'        => true,
-			'menu_position'       => 6,
-			'menu_icon'           => 'dashicons-email-alt',
-			'show_in_nav_menus'   => false,
-			'publicly_queryable'  => false,
-			'exclude_from_search' => false,
-			'has_archive'         => false,
-			'query_var'           => false,
-			'can_export'          => true,
-			'rewrite'             => false,
-			'capabilities'        => [
+			'labels'               => $labels,
+			'hierarchical'         => false,
+			'supports'             => [ 'title', 'editor' ],
+			'public'               => false,
+			'show_ui'              => true,
+			'show_in_menu'         => true,
+			'menu_position'        => 6,
+			'menu_icon'            => 'dashicons-email-alt',
+			'show_in_nav_menus'    => false,
+			'publicly_queryable'   => false,
+			'exclude_from_search'  => false,
+			'has_archive'          => false,
+			'query_var'            => false,
+			'can_export'           => false,
+			'rewrite'              => false,
+			'capabilities'         => [
 				'create_posts'           => 'do_not_allow',
 				'delete_others_posts'    => 'manage_options',
 				'delete_post'            => 'manage_options',

@@ -20,6 +20,8 @@ if ( ! class_exists( '\Rplus\Notifications\NotificationController' ) ) {
 	return;
 }
 
+define( 'Rplus\Notifications\PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
+
 /**
  * Plugin activation and deactivation
  */

@@ -1,0 +1,214 @@
+# Copyright (C) 2018 required+ E-Mail Notifications
+# This file is distributed under the same license as the required+ E-Mail Notifications package.
+msgid ""
+msgstr ""
+"Project-Id-Version: required+ E-Mail Notifications 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/required-email-"
+"notifications\n"
+"POT-Creation-Date: 2018-03-16 17:07:04+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2018-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+
+#: lib/NotificationController.php:90
+msgid ""
+"required+ E-Mail Notifications: wp_mail has been declared by another process "
+"or plugin, so you won't be able to use the Mandrill Adapter for all "
+"WordPress Mails until the problem is solved."
+msgstr ""
+
+#: lib/NotificationController.php:112
+msgid "r+ Notifications"
+msgstr ""
+
+#: lib/NotificationController.php:136
+msgid "Settings"
+msgstr ""
+
+#: lib/NotificationController.php:138
+msgid "Configure E-Mail Sender"
+msgstr ""
+
+#: lib/NotificationController.php:145
+msgid "Adapters"
+msgstr ""
+
+#: lib/NotificationController.php:147
+msgid "Configure Adapters"
+msgstr ""
+
+#: lib/NotificationController.php:154
+msgid "Sender E-Mail"
+msgstr ""
+
+#: lib/NotificationController.php:166
+msgid "Sender Name"
+msgstr ""
+
+#: lib/NotificationController.php:178
+msgid "Madrill API Key"
+msgstr ""
+
+#: lib/NotificationController.php:182
+msgid "Mandrill API Key ist via wp-config.php definiert"
+msgstr ""
+
+#: lib/NotificationController.php:197
+msgid "WordPress Mails"
+msgstr ""
+
+#: lib/NotificationController.php:205
+msgid "Alle WordPress Mails über Mandrill verschicken"
+msgstr ""
+
+#: lib/NotificationController.php:215
+msgid "Delay sending (performance)"
+msgstr ""
+
+#: lib/NotificationController.php:223
+msgid ""
+"Die E-Mail nicht direkt verschicken, sondern in der Queue ablegen und per "
+"CronJob verschicken, dies verbesser die Performance."
+msgstr ""
+
+#: lib/NotificationModel.php:131
+msgctxt "post type general name"
+msgid "Notifications"
+msgstr ""
+
+#: lib/NotificationModel.php:132
+msgctxt "post type singular name"
+msgid "Notification"
+msgstr ""
+
+#: lib/NotificationModel.php:133 lib/NotificationModel.php:134
+msgid "View Notification"
+msgstr ""
+
+#: lib/NotificationModel.php:135
+msgid "Search Notifications"
+msgstr ""
+
+#: lib/NotificationModel.php:136
+msgid "No notifications found"
+msgstr ""
+
+#: lib/NotificationModel.php:137
+msgid "No notifications found in Trash"
+msgstr ""
+
+#: lib/NotificationModel.php:138
+msgid "Notifications"
+msgstr ""
+
+#: lib/NotificationModel.php:139
+msgid "All Notifications"
+msgstr ""
+
+#: lib/NotificationModel.php:140
+msgid "Filter notifications list"
+msgstr ""
+
+#: lib/NotificationModel.php:141
+msgid "Notifications list navigation"
+msgstr ""
+
+#: lib/NotificationModel.php:142
+msgid "Notifications list"
+msgstr ""
+
+#: lib/NotificationModel.php:201
+msgid "Subject"
+msgstr ""
+
+#: lib/NotificationModel.php:202
+msgid "Recipient"
+msgstr ""
+
+#: lib/NotificationModel.php:203
+msgid "State"
+msgstr ""
+
+#: lib/NotificationModel.php:204
+msgid "Created"
+msgstr ""
+
+#: lib/NotificationModel.php:205
+msgid "Send on"
+msgstr ""
+
+#. translators: %s: post title
+#: lib/NotificationModel.php:244
+msgid "View &#8220;%s&#8221;"
+msgstr ""
+
+#: lib/NotificationModel.php:254
+msgid "View"
+msgstr ""
+
+#: lib/NotificationModel.php:336 lib/NotificationModel.php:371
+msgid "Executed: "
+msgstr ""
+
+#: lib/NotificationModel.php:359
+msgid "Mail Status Info"
+msgstr ""
+
+#: lib/NotificationModel.php:362
+msgid "Recipients:"
+msgstr ""
+
+#: lib/NotificationModel.php:365
+msgid "Status: "
+msgstr ""
+
+#: lib/NotificationModel.php:374
+msgid "Used Adapter: "
+msgstr ""
+
+#: lib/NotificationModel.php:409
+msgid "New"
+msgstr ""
+
+#: lib/NotificationModel.php:409
+msgid "to be processed"
+msgstr ""
+
+#: lib/NotificationModel.php:412
+msgid "In progress"
+msgstr ""
+
+#: lib/NotificationModel.php:412
+msgid "still processing"
+msgstr ""
+
+#: lib/NotificationModel.php:415
+msgid "Completed"
+msgstr ""
+
+#: lib/NotificationModel.php:418
+msgid "Error"
+msgstr ""
+
+#. Plugin Name of the plugin/theme
+msgid "required+ E-Mail Notifications"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "http://www.required.ch/"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid "E-Mail Notifications queue and management."
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "required gmbh"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://www.required.ch"
+msgstr ""

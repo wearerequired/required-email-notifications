@@ -233,6 +233,7 @@ final class NotificationController {
 	 * make some initialisation
 	 */
 	public function init() {
+		load_plugin_textdomain( 'rplusnotifications', false, dirname( \Rplus\Notifications\PLUGIN_BASENAME ) . '/languages' );
 		// register the post type with wordpress
 		NotificationModel::register();
 	}
