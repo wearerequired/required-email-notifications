@@ -346,6 +346,8 @@ class NotificationModel {
 		 */
 		add_action( 'add_meta_boxes', function () {
 
+			remove_meta_box( 'submitdiv', NotificationModel::$post_type, 'side' );
+
 			add_meta_box(
 				'rplus_notifications_info',
 				__( 'Mail Status Info', 'rplusnotifications' ),
