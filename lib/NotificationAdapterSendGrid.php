@@ -3,24 +3,21 @@
 namespace Rplus\Notifications;
 
 use Exception;
-use Mandrill;
-use Mandrill_Error;
+use SendGrid;
 
 /**
- * Class NotificationAdapterMandrill
- *
- * default adapter for handling Notifications
+ * Class NotificationAdapterSendGrid
  *
  * @package Rplus\Notifications
  */
-class NotificationAdapterMandrill implements NotificationAdapter {
+class NotificationAdapterSendGrid implements NotificationAdapter {
 
 	/**
-	 * The Mandrill object
+	 * The SendGrid object
 	 *
-	 * @var \Mandrill|null
+	 * @var \SendGrid|null
 	 */
-	private $mandrill = null;
+	private $sendgrid = null;
 
 	/**
 	 * do we have a valid api key?
@@ -52,16 +49,13 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 		try {
 
 			// When api key is defined via constant, take that.
-			if ( defined( 'RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY' ) ) {
-				$api_key = RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY;
+			if ( defined( 'RPLUS_NOTIFICATIONS_ADAPTER_SENDGRID_API_KEY' ) ) {
+				$api_key = RPLUS_NOTIFICATIONS_ADAPTER_SENDGRID_API_KEY;
 			} else {
-				$api_key = get_option( 'rplus_notifications_adapters_mandrill_apikey' );
+				$api_key = get_option( 'rplus_notifications_adapters_sendgrid_apikey' );
 			}
 
-			$this->mandrill = new Mandrill( $api_key );
-
-			// check if we got a valid API Key
-			$this->mandrill->users->ping();
+			$this->sendgrid = new SendGrid( $api_key );
 
 			// when ping works, the API Key is valid.
 			$this->valid_api_key = true;
@@ -85,74 +79,55 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 			return false;
 		}
 
-		// produce api call data for the message
-		$message = [
-			'subject'    => $model->getSubject(),
-			'from_email' => $model->getSenderEmail(),
-			'from_name'  => $model->getSenderName(),
-			'headers'    => [
-				'Reply-To' => $model->getSenderEmail(),
-			],
-			'to'         => [],
-		];
+		$email = new SendGrid\Mail\Mail();
 
-		if ( 'text/html' === $model->getContentType() ) {
-			$message['html'] = $model->getBody();
-		} else {
-			$message['text'] = $model->getBody();
-		}
+		$email->setFrom( $model->getSenderEmail(), $model->getSenderName() );
+		$email->setSubject( $model->getSubject() );
+		$email->addContent( $model->getContentType(), $model->getBody() );
+		$email->setReplyTo( $model->getSenderEmail(), $model->getSenderName() );
 
 		// Add recipients.
 		foreach ( $model->getRecipient() as $recipient ) {
-			$message['to'][] = [
-				'email' => $recipient[0],
-				'name'  => $recipient[1],
-				'type'  => 'to',
-			];
+			$email->addTo( $recipient[0], $recipient[1] );
 		}
 
 		foreach ( $model->getCcRecipient() as $recipient ) {
-			$message['to'][] = [
-				'email' => $recipient[0],
-				'name'  => $recipient[1],
-				'type'  => 'cc',
-			];
+			$email->addCc( $recipient[0], $recipient[1] );
 		}
 
 		foreach ( $model->getBccRecipient() as $recipient ) {
-			$message['to'][] = [
-				'email' => $recipient[0],
-				'name'  => $recipient[1],
-				'type'  => 'bcc',
-			];
+			$email->addBcc( $recipient[0], $recipient[1] );
 		}
 
 		foreach ( $model->getReplyTo() as $recipient ) {
-			$message['headers']['Reply-To'] = $recipient[0];
+			$email->setReplyTo( $recipient[0], $recipient[1] );
 		}
 
 		// add all file attachments
 		if ( false !== $model->getAttachments() ) {
 
 			foreach ( $model->getAttachments() as $attachment_name => $attachment_path ) {
-				$message['attachments'][] = [
-					'type'    => $model->getFileMimeType( $attachment_path ),
-					'name'    => $attachment_name,
-					'content' => base64_encode( file_get_contents( $attachment_path ) ),
-				];
+				$email->addAttachment(
+					base64_encode( file_get_contents( $attachment_path ) ),
+					$model->getFileMimeType( $attachment_path ),
+					$attachment_name
+				);
 			}
 		}
 
 		try {
+			$response = $this->sendgrid->send( $email );
 
-			$response = $this->mandrill->messages->send( $message );
+			$response_data = [
+				'status' => $response->statusCode(),
+				'body'   => $response->body(),
+			];
 
-			// update post with mandrill message id
-			update_post_meta( $model->getId(), 'rplus_mandrill_response', $response );
+			update_post_meta( $model->getId(), 'rplus_sendgrid_response', $response_data );
 
 			$model->setState( NotificationState::COMPLETE );
 
-		} catch ( Mandrill_Error $e ) {
+		} catch ( Exception $e ) {
 
 			$model->setState( NotificationState::ERROR );
 			$this->error = get_class( $e ) . ' - ' . $e->getMessage();
@@ -219,7 +194,7 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 	 * @return bool
 	 */
 	public static function isConfigured() {
-		if ( ! defined( 'RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY' ) && ! get_option( 'rplus_notifications_adapters_mandrill_apikey' ) ) {
+		if ( ! defined( 'RPLUS_NOTIFICATIONS_ADAPTER_SENDGRID_API_KEY' ) && ! get_option( 'rplus_notifications_adapters_sendgrid_apikey' ) ) {
 			return false;
 		}
 

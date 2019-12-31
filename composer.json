@@ -23,7 +23,8 @@
     ],
     "require": {
         "php": ">=5.6",
-        "mandrill/mandrill": "1.0.*"
+        "mandrill/mandrill": "1.0.*",
+        "sendgrid/sendgrid": "^7.4"
     },
     "autoload": {
         "psr-4": {
