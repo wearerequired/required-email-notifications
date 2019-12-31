@@ -134,7 +134,7 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
 
 		$notification = req_notifications()->addNotification();
 		$notification
-			->setAdapter( apply_filters( 'rplus_notifications.wp_mail_default_adapter', 'SendGrid' ) )
+			->setAdapter( apply_filters( 'rplus_notifications.wp_mail_default_adapter', 'Mandrill' ) )
 			->setSubject( $subject )
 			->setBody( $message )
 			->setContentType( $content_type );
