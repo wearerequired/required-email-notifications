@@ -47,8 +47,12 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
 			$attachments = explode( "\n", str_replace( "\r\n", "\n", $attachments ) );
 		}
 
-		$cc = $bcc = array();
-		$from_email = $from_name = null;
+		// Headers
+		$cc         = array();
+		$bcc        = array();
+		$reply_to   = array();
+		$from_email = null;
+		$from_name  = null;
 
 		if ( ! empty( $headers ) ) {
 			if ( ! is_array( $headers ) ) {
@@ -99,23 +103,45 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
 								$from_email = trim( $content );
 							}
 							break;
+						case 'content-type':
+							if ( strpos( $content, ';' ) !== false ) {
+								list( $type ) = explode( ';', $content );
+								$content_type = trim( $type );
+							} elseif ( '' !== trim( $content ) ) {
+								$content_type = trim( $content );
+							}
+							break;
 						case 'cc':
 							$cc = array_merge( (array) $cc, explode( ',', $content ) );
 							break;
 						case 'bcc':
 							$bcc = array_merge( (array) $bcc, explode( ',', $content ) );
 							break;
+						case 'reply-to':
+							$reply_to = array_merge( (array) $reply_to, explode( ',', $content ) );
+							break;
 					}
 				}
 			}
 		}
 
+		// If we don't have a content-type from the input headers
+		if ( ! isset( $content_type ) ) {
+			$content_type = 'text/plain';
+		}
+
+		$content_type = apply_filters( 'wp_mail_content_type', $content_type );
 
 		$notification = req_notifications()->addNotification();
 		$notification
-			->setAdapter( 'Mandrill' )
+			->setAdapter( apply_filters( 'rplus_notifications.wp_mail_default_adapter', 'Mandrill' ) )
 			->setSubject( $subject )
-			->setBody( $message );
+			->setBody( $message )
+			->setContentType( $content_type );
+
+		foreach ( $reply_to as $recipient ) {
+			$notification->addReplyTo( $recipient );
+		}
 
 		foreach ( $to as $recipient ) {
 			$notification->addRecipient( $recipient );

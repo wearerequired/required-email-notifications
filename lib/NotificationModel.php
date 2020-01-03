@@ -52,9 +52,21 @@ class NotificationModel {
 	private $bcc = [];
 
 	/**
+	 * Reply-To for this notification.
+	 *
+	 * @var array
+	 */
+	private $reply_to = [];
+
+	/**
 	 * @var string the message body
 	 */
 	private $body = null;
+
+	/**
+	 * @var string the content type
+	 */
+	private $content_type = 'text/html';
 
 	/**
 	 * @var array file attachments
@@ -432,6 +444,7 @@ class NotificationModel {
 
 		$this->setAdapter( get_post_meta( $this->id, 'rplus_adapter', true ) );
 		$this->setBody( get_post_meta( $this->id, 'rplus_mail_body', true ) );
+		$this->setContentType( get_post_meta( $this->id, 'rplus_mail_content_type', true ) );
 		$this->setState( get_post_meta( $this->id, 'rplus_state', true ) );
 		$this->setSubject( $this->post->post_title );
 		$this->setSchedule( get_post_meta( $this->id, 'rplus_send_on', true ) );
@@ -566,6 +579,20 @@ class NotificationModel {
 	}
 
 	/**
+	 * Add a notification Reply-to.
+	 *
+	 * @param string      $email the email address
+	 * @param string|null $name  optional name
+	 *
+	 * @return NotificationModel allows chaining
+	 */
+	public function addReplyTo( $email, $name = null ) {
+		$this->reply_to[] = [ $email, $name ];
+
+		return $this;
+	}
+
+	/**
 	 * Set the notification BCC recipient, just one email address possible here
 	 *
 	 * @deprecated Use addBccRecipient().
@@ -604,6 +631,18 @@ class NotificationModel {
 	 */
 	public function setBody( $body ) {
 		$this->body = $body;
+
+		return $this;
+	}
+
+	/**
+	 * Set a notification message content type.
+	 *
+	 * @param string $content_type The message content type.
+	 * @return NotificationModel
+	 */
+	public function setContentType( $content_type ) {
+		$this->content_type = $content_type;
 
 		return $this;
 	}
@@ -710,6 +749,15 @@ class NotificationModel {
 	}
 
 	/**
+	 * Get the notification content type.
+	 *
+	 * @return string
+	 */
+	public function getContentType() {
+		return $this->content_type;
+	}
+
+	/**
 	 * Get the notification send date
 	 *
 	 * @return string
@@ -743,6 +791,14 @@ class NotificationModel {
 	 */
 	public function getBccRecipient() {
 		return $this->bcc;
+	}
+	/**
+	 * Get the notification reply-to.
+	 *
+	 * @return array
+	 */
+	public function getReplyTo() {
+		return $this->reply_to;
 	}
 
 	/**
@@ -855,12 +911,14 @@ class NotificationModel {
 
 		// set all other properties
 		update_post_meta( $this->id, 'rplus_mail_body', $this->getBody() );
+		update_post_meta( $this->id, 'rplus_mail_content_type', $this->content_type );
 		update_post_meta( $this->id, 'rplus_adapter', $this->adapter );
 		update_post_meta( $this->id, 'rplus_sender_email', $this->sender_email );
 		update_post_meta( $this->id, 'rplus_sender_name', $this->sender_name );
 		update_post_meta( $this->id, 'rplus_recipient', $this->recipient );
 		update_post_meta( $this->id, 'rplus_recipient_cc', $this->cc );
 		update_post_meta( $this->id, 'rplus_recipient_bcc', $this->bcc );
+		update_post_meta( $this->id, 'rplus_reply_to', $this->reply_to );
 		update_post_meta( $this->id, 'rplus_attachment', $this->attachment );
 		update_post_meta( $this->id, 'rplus_send_on', $this->send_on );
 		update_post_meta( $this->id, 'rplus_state', $this->state );
@@ -906,4 +964,3 @@ class NotificationModel {
 		}
 	}
 }
-

@@ -127,6 +127,7 @@ final class NotificationController {
 	public function plugin_page_init() {
 		register_setting( 'rplus-notifications-email', 'rplus_notifications_sender_email' );
 		register_setting( 'rplus-notifications-email', 'rplus_notifications_sender_name' );
+		register_setting( 'rplus-notifications-email', 'rplus_notifications_adapters_sendgrid_apikey' );
 		register_setting( 'rplus-notifications-email', 'rplus_notifications_adapters_mandrill_apikey' );
 		register_setting( 'rplus-notifications-email', 'rplus_notifications_adapters_mandrill_override_wp_mail' );
 		register_setting( 'rplus-notifications-email', 'rplus_notifications_adapters_mandrill_override_use_queue' );
@@ -174,8 +175,27 @@ final class NotificationController {
 		);
 
 		add_settings_field(
+			'rplus_notifications_adapters_sendgrid_apikey',
+			__( 'SendGrid API Key', 'rplusnotifications' ),
+			function() {
+				if ( defined( 'RPLUS_NOTIFICATIONS_ADAPTER_SENDGRID_API_KEY' ) ) {
+					?><input type="text" class="regular-text" readonly value="***************<?php echo substr( RPLUS_NOTIFICATIONS_ADAPTER_SENDGRID_API_KEY, -4 )?>">
+					<p class="description"><?php esc_html_e( 'SendGrid API Key ist via wp-config.php definiert', 'rplusnotifications' ); ?></p>
+					<input type="hidden" id="rplus_notifications_adapters_mandrill_apikey"
+							 name="rplus_notifications_adapters_sendgrid_apikey" value=""/><?php
+				} else {
+					?><input type="text" class="regular-text" id="rplus_notifications_adapters_sendgrid_apikey"
+							 name="rplus_notifications_adapters_sendgrid_apikey"
+							 value="<?php echo esc_attr( get_option( 'rplus_notifications_adapters_sendgrid_apikey' ) ); ?>" /><?php
+				}
+			},
+			'rplus-notifications',
+			'rplus_notifications_adapters'
+		);
+
+		add_settings_field(
 			'rplus_notifications_adapters_mandrill_apikey',
-			__( 'Madrill API Key', 'rplusnotifications' ),
+			__( 'Mandrill API Key', 'rplusnotifications' ),
 			function() {
 				if ( defined( 'RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY' ) ) {
 					?><input type="text" class="regular-text" readonly value="***************<?php echo substr( RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY, -4 )?>">
@@ -338,4 +358,3 @@ final class NotificationController {
 		return $notification;
 	}
 }
-
