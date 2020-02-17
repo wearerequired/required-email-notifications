@@ -73,7 +73,7 @@ final class NotificationController {
 	 */
 	public static function wp_mail_native( $to, $subject, $message, $headers = '', $attachments = [] ) {
 
-		error_log( "\nrequired+ E-Mail Notifications -> wp_mail_native(): $to ($subject)\n" );
+		error_log( "\nEmail Notifications -> wp_mail_native(): $to ($subject)\n" );
 
 		return require __DIR__ . '/legacy/function.wp_mail.php';
 	}
@@ -87,7 +87,7 @@ final class NotificationController {
 		?>
 		<div class="error">
 			<p>
-				<?php _e( 'required+ E-Mail Notifications: wp_mail has been declared by another process or plugin, so you won\'t be able to use the Mandrill Adapter for all WordPress Mails until the problem is solved.', 'rplusnotifications' ); ?>
+				<?php _e( 'Email Notifications: wp_mail has been declared by another process or plugin, so you won\'t be able to use the Mandrill Adapter for all WordPress Mails until the problem is solved.', 'rplusnotifications' ); ?>
 			</p>
 		</div>
 		<?php
@@ -97,10 +97,13 @@ final class NotificationController {
 	 * Plugin's Option page
 	 */
 	public function add_plugin_page() {
-		add_options_page( 'r+ Notification Options', 'r+ Notifications', 'manage_options', 'rplus-notifications', [
-			$this,
-			'create_admin_page',
-		] );
+		add_options_page(
+			__( 'Email Notifications Settings', 'rplusnotifications' ),
+			__( 'Email Notifications', 'rplusnotifications' ),
+			'manage_options',
+			'rplus-notifications',
+			[ $this, 'create_admin_page' ]
+		);
 	}
 
 	/**
@@ -109,7 +112,7 @@ final class NotificationController {
 	public function create_admin_page() {
 		?>
 		<div class="wrap">
-			<h1><?php _e( 'r+ Notifications', 'rplusnotifications' ); ?></h1>
+			<h1><?php echo get_admin_page_title(); ?></h1>
 			<form method="post" action="options.php">
 				<?php
 				settings_fields( 'rplus-notifications-email' );
@@ -136,7 +139,7 @@ final class NotificationController {
 			'rplus_notifications_email',
 			__( 'Settings', 'rplusnotifications' ),
 			function() {
-				_e( 'Configure E-Mail Sender', 'rplusnotifications' );
+				_e( 'Configure Email Sender', 'rplusnotifications' );
 			},
 			'rplus-notifications'
 		);
@@ -152,7 +155,7 @@ final class NotificationController {
 
 		add_settings_field(
 			'rplus_notifications_sender_email',
-			__( 'Sender E-Mail', 'rplusnotifications' ),
+			__( 'Sender Email', 'rplusnotifications' ),
 			function() {
 				?><input type="text" class="regular-text" id="rplus_notifications_sender_email"
 						 name="rplus_notifications_sender_email"

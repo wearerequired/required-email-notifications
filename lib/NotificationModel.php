@@ -92,7 +92,7 @@ class NotificationModel {
 	private $sender_name = null;
 
 	/**
-	 * Sender E-Mail (configurable via Plugin Options)
+	 * Sender Email (configurable via Plugin Options)
 	 *
 	 * @var string
 	 */

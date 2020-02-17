@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: required+ E-Mail Notifications
+Plugin Name: Email Notifications
 Plugin URI: http://www.required.ch/
-Description: E-Mail Notifications queue and management.
+Description: Email notifications queue and management.
 Version: 1.0.0
 Author: required gmbh
 Author URI: http://www.required.ch

@@ -1,9 +1,9 @@
-required+ E-Mail Notifications
+Email Notifications
 ==============================
 This is a WordPress plugin to handle email notifications with a easy to use API. It's extensible with custom adapters (email providers).
 Notifications will be send via WordPress cron job, triggered every hour.
 
-E-Mail Providers
+Email Providers
 ----------------
 ### Madrill ###
 Mandrill provides a powerful API, built by the folks at MailChimp it's a good working service. You need a API-Key which you have to add to the plugin options, otherwise this adapter will not work.
@@ -53,7 +53,3 @@ req_notifications()->getNotification( 123 /* The notification id */ )
     ->addRecipient( 'recipient@email.com' )
     ->save();
 ```
-
-required+
-=========
-[required+](http://required.ch) is a network of experienced web professionals from Switzerland and Germany. We focus on Interaction Design, Mobile Web, WordPress and some other things.
