@@ -200,6 +200,14 @@ class NotificationModel {
 		register_post_type( self::$post_type, $args );
 
 		/**
+		 * Hide SearchWP meta box.
+		 */
+		add_filter( 'searchwp_related_excluded_post_types', function( $post_types ) {
+			$post_types[] = self::$post_type;
+			return $post_types;
+		} );
+
+		/**
 		 * Modify wp-admin columns for NotificationModel
 		 *
 		 * @uses add_filter( $tag, $function_to_add, $priority = 10, $accepted_args = 1 )
