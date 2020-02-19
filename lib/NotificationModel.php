@@ -451,7 +451,7 @@ class NotificationModel {
 		}
 
 		$this->setAdapter( get_post_meta( $this->id, 'rplus_adapter', true ) );
-		$this->setBody( get_post_meta( $this->id, 'rplus_mail_body', true ) );
+		$this->setBody( $this->post->post_content );
 		$this->setContentType( get_post_meta( $this->id, 'rplus_mail_content_type', true ) );
 		$this->setState( get_post_meta( $this->id, 'rplus_state', true ) );
 		$this->setSubject( $this->post->post_title );
@@ -941,7 +941,6 @@ class NotificationModel {
 		}
 
 		// set all other properties
-		update_post_meta( $this->id, 'rplus_mail_body', $this->getBody() );
 		update_post_meta( $this->id, 'rplus_mail_content_type', $this->content_type );
 		update_post_meta( $this->id, 'rplus_adapter', $this->adapter );
 		update_post_meta( $this->id, 'rplus_sender_email', $this->sender_email );
