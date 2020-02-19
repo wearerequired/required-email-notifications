@@ -20,6 +20,7 @@ if ( ! class_exists( '\Rplus\Notifications\NotificationController' ) ) {
 	return;
 }
 
+define( 'Rplus\Notifications\PLUGIN_FILE', __FILE__ );
 define( 'Rplus\Notifications\PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 /**

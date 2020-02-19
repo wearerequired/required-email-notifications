@@ -4,6 +4,7 @@ namespace Rplus\Notifications;
 
 use Exception;
 use WP_Query;
+use const Rplus\Notifications\PLUGIN_FILE;
 
 class NotificationModel {
 
@@ -162,7 +163,7 @@ class NotificationModel {
 		$args = apply_filters( 'rplus_notifications/filter/types/notification/args', [
 			'labels'               => $labels,
 			'hierarchical'         => false,
-			'supports'             => [ 'title', 'editor' ],
+			'supports'             => false,
 			'public'               => false,
 			'show_ui'              => true,
 			'show_in_menu'         => true,
@@ -366,12 +367,41 @@ class NotificationModel {
 			}
 		}, 10, 2 );
 
+		add_action(
+			'admin_enqueue_scripts',
+			function() {
+				$screen = get_current_screen();
+				if ( ! isset( $screen->base, $screen->id ) || 'post' !== $screen->base || NotificationModel::$post_type !== $screen->id ) {
+					return;
+				}
+
+				wp_enqueue_script(
+					'rplus-notification-admin',
+					plugins_url( '/assets/js/admin.js', PLUGIN_FILE ),
+					[
+						'wp-components',
+						'wp-element',
+					],
+					'20200219',
+					true,
+				);
+
+				wp_enqueue_style(
+					'rplus-notification-admin',
+					plugins_url( '/assets/css/admin.css', PLUGIN_FILE ),
+					[],
+					'20200219',
+				);
+			}
+		);
+
 		/**
 		 * Add Notification State meta box
 		 */
 		add_action( 'add_meta_boxes', function () {
 
 			remove_meta_box( 'submitdiv', NotificationModel::$post_type, 'side' );
+			remove_meta_box( 'slugdiv', NotificationModel::$post_type, 'normal' );
 
 			add_meta_box(
 				'rplus_notifications_info',
@@ -395,6 +425,26 @@ class NotificationModel {
 				},
 				NotificationModel::$post_type,
 				'side'
+			);
+
+			add_meta_box(
+				'rplus_notifications_subject',
+				__( 'Mail Subject', 'rplusnotifications' ),
+				function ( $post ) {
+					echo '<div id="rplus-notifications-subject" class="rplus-notifications-iframe-sandbox" data-content="' . esc_attr( $post->post_title ) . '"></div>';
+				},
+				NotificationModel::$post_type,
+				'normal'
+			);
+
+			add_meta_box(
+				'rplus_notifications_content',
+				__( 'Mail Content', 'rplusnotifications' ),
+				function ( $post ) {
+					echo '<div id="rplus-notifications-content" class="rplus-notifications-iframe-sandbox" data-content="' . esc_attr( $post->post_content ) . '"></div>';
+				},
+				NotificationModel::$post_type,
+				'normal'
 			);
 		} );
 	}

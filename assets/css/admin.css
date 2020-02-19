@@ -1,0 +1,7 @@
+.post-php.post-type-rplus_notification #post-body-content {
+	margin-bottom: 0;
+}
+
+.rplus-notifications-iframe-sandbox iframe {
+	width: 100%;
+}
