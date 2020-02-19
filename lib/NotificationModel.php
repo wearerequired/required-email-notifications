@@ -898,11 +898,13 @@ class NotificationModel {
 		} else {
 
 			// just save some values, we need the post id to later set all properties
-			$this->id = wp_insert_post( [
-				'post_status' => 'draft',
-				'post_date'   => date( 'Y-m-d H:i:s' ),
-				'post_type'   => self::$post_type,
-			] );
+			$this->id = wp_insert_post(
+				[
+					'post_status' => 'draft',
+					'post_date'   => gmdate( 'Y-m-d H:i:s' ),
+					'post_type'   => self::$post_type,
+				]
+			);
 
 			// when we got a inserted id, save successed
 			if ( ! $this->id ) {
@@ -910,12 +912,33 @@ class NotificationModel {
 			}
 		}
 
-		// update title and body
-		wp_update_post( [
-			'ID'           => $this->id,
-			'post_title'   => $this->getSubject(),
-			'post_content' => $this->getBody(),
-		] );
+		// Update title and body
+
+		// Prevent content filters from corrupting HTML in post_content.
+		$has_kses = ( false !== has_filter( 'content_save_pre', 'wp_filter_post_kses' ) );
+		if ( $has_kses ) {
+			kses_remove_filters();
+		}
+		$has_targeted_link_rel_filters = ( false !== has_filter( 'content_save_pre', 'wp_targeted_link_rel' ) );
+		if ( $has_targeted_link_rel_filters ) {
+			wp_remove_targeted_link_rel_filters();
+		}
+
+		wp_update_post(
+			[
+				'ID'           => $this->id,
+				'post_title'   => $this->getSubject(),
+				'post_content' => $this->getBody(),
+			]
+		);
+
+		// Restore removed content filters.
+		if ( $has_kses ) {
+			kses_init_filters();
+		}
+		if ( $has_targeted_link_rel_filters ) {
+			wp_init_targeted_link_rel_filters();
+		}
 
 		// set all other properties
 		update_post_meta( $this->id, 'rplus_mail_body', $this->getBody() );
