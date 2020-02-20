@@ -431,7 +431,9 @@ class NotificationModel {
 				'rplus_notifications_subject',
 				__( 'Mail Subject', 'rplusnotifications' ),
 				function ( $post ) {
-					echo '<div id="rplus-notifications-subject" class="rplus-notifications-iframe-sandbox" data-content="' . esc_attr( $post->post_title ) . '"></div>';
+					$notification = req_notifications()->getNotification( $post->ID );
+
+					echo '<div id="rplus-notifications-subject" class="rplus-notifications-iframe-sandbox" data-content="' . esc_attr( $notification->getSubject() ) . '"></div>';
 				},
 				NotificationModel::$post_type,
 				'normal'
@@ -441,7 +443,9 @@ class NotificationModel {
 				'rplus_notifications_content',
 				__( 'Mail Content', 'rplusnotifications' ),
 				function ( $post ) {
-					echo '<div id="rplus-notifications-content" class="rplus-notifications-iframe-sandbox" data-content="' . esc_attr( $post->post_content ) . '"></div>';
+					$notification = req_notifications()->getNotification( $post->ID );
+
+					echo '<div id="rplus-notifications-content" class="rplus-notifications-iframe-sandbox" data-content="' . esc_attr( $notification->getBody() ) . '"></div>';
 				},
 				NotificationModel::$post_type,
 				'normal'
@@ -501,7 +505,13 @@ class NotificationModel {
 		}
 
 		$this->setAdapter( get_post_meta( $this->id, 'rplus_adapter', true ) );
-		$this->setBody( $this->post->post_content );
+		// Check for deprecated post meta.
+		$body = get_post_meta( $this->id, 'rplus_mail_body', true );
+		if ( ! $body ) {
+			$body = $this->post->post_content;
+		}
+
+		$this->setBody( $body );
 		$this->setContentType( get_post_meta( $this->id, 'rplus_mail_content_type', true ) );
 		$this->setState( get_post_meta( $this->id, 'rplus_state', true ) );
 		$this->setSubject( $this->post->post_title );
@@ -940,14 +950,10 @@ class NotificationModel {
 		// set defaults (state, send_on etc.) when not defined
 		$adapter->setDefaults( $this );
 
-		// update existing post, we got a id
-		if ( null !== $this->id ) {
-			// nothing to do now
+		$is_new = null === $this->id;
 
-			// save new post
-		} else {
-
-			// just save some values, we need the post id to later set all properties
+		// Create a new post.
+		if ( $is_new ) {
 			$this->id = wp_insert_post(
 				[
 					'post_status' => 'draft',
@@ -956,7 +962,6 @@ class NotificationModel {
 				]
 			);
 
-			// when we got a inserted id, save successed
 			if ( ! $this->id ) {
 				return false;
 			}
@@ -1003,6 +1008,11 @@ class NotificationModel {
 		update_post_meta( $this->id, 'rplus_send_on', $this->send_on );
 		update_post_meta( $this->id, 'rplus_state', $this->state );
 		update_post_meta( $this->id, 'rplus_error_message', $this->error_message );
+
+		// Remove deprecated post meta for older notifications.
+		if ( ! $is_new ) {
+			delete_post_meta( $this->id, 'rplus_mail_body' );
+		}
 
 		return true;
 	}
