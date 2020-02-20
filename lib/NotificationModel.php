@@ -383,14 +383,14 @@ class NotificationModel {
 						'wp-element',
 					],
 					'20200219',
-					true,
+					true
 				);
 
 				wp_enqueue_style(
 					'rplus-notification-admin',
 					plugins_url( '/assets/css/admin.css', PLUGIN_FILE ),
 					[],
-					'20200219',
+					'20200219'
 				);
 			}
 		);
