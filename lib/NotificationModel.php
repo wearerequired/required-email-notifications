@@ -433,7 +433,17 @@ class NotificationModel {
 				function ( $post ) {
 					$notification = req_notifications()->getNotification( $post->ID );
 
-					echo '<div id="rplus-notifications-subject" class="rplus-notifications-iframe-sandbox" data-content="' . esc_attr( $notification->getSubject() ) . '"></div>';
+					$subject_css = <<<'CSS'
+					<style>
+					body {
+						font-size: 13px;
+						line-height: 1.4em;
+						font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+					}
+					</style>
+					CSS;
+
+					echo '<div id="rplus-notifications-subject" class="rplus-notifications-iframe-sandbox" data-content="' . esc_attr( $subject_css . $notification->getSubject() ) . '"></div>';
 				},
 				NotificationModel::$post_type,
 				'normal'
