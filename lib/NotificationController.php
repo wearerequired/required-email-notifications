@@ -32,6 +32,7 @@ final class NotificationController {
 	private function __construct() {
 
 		add_action( 'init', [ $this, 'init' ] );
+		add_filter( 'cron_schedules', [ $this, 'extend_cron_schedules' ] );
 
 		add_action( 'rplus_notification_cron_hook', [ $this, 'cron' ] );
 
@@ -59,6 +60,21 @@ final class NotificationController {
 
 			}
 		}
+	}
+
+	/**
+	 * Extends the default cron schedules.
+	 *
+	 * @param array $schedules An array of non-default cron schedules. Default empty.
+	 * @return array An array of non-default cron schedules.
+	 */
+	public function extend_cron_schedules( $schedules ) {
+		$schedules['every_5_minutes'] = [
+			'interval' => 5 * MINUTE_IN_SECONDS,
+			'display'  => __( 'Every five minutes', 'freshjobs-theme' ),
+		];
+
+		return $schedules;
 	}
 
 	/**
@@ -257,7 +273,7 @@ final class NotificationController {
 	 */
 	public function init() {
 		load_plugin_textdomain( 'rplusnotifications', false, dirname( \Rplus\Notifications\PLUGIN_BASENAME ) . '/languages' );
-		// register the post type with wordpress
+
 		NotificationModel::register();
 	}
 
@@ -271,7 +287,9 @@ final class NotificationController {
 	 * Plugin activation
 	 */
 	public static function _activate() {
-		wp_schedule_event( current_time( 'timestamp' ), 'hourly', 'rplus_notification_cron_hook' );
+		if ( ! wp_next_scheduled( 'rplus_notification_cron_hook' ) ) {
+			wp_schedule_event( time(), 'every_5_minutes', 'rplus_notification_cron_hook' );
+		}
 
 		flush_rewrite_rules();
 	}
