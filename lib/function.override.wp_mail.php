@@ -17,7 +17,15 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
 	$original_arguments = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
 
 	try {
+		/** This filter is documented in wp-includes/pluggable.php */
 		$atts = apply_filters( 'wp_mail', $original_arguments );
+
+		/** This filter is documented in wp-includes/pluggable.php */
+		$pre_wp_mail = apply_filters( 'pre_wp_mail', null, $atts );
+
+		if ( null !== $pre_wp_mail ) {
+			return $pre_wp_mail;
+		}
 
 		if ( isset( $atts['to'] ) ) {
 			$to = $atts['to'];
@@ -47,34 +55,36 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
 			$attachments = explode( "\n", str_replace( "\r\n", "\n", $attachments ) );
 		}
 
-		// Headers
+		// Headers.
 		$cc         = array();
 		$bcc        = array();
 		$reply_to   = array();
 		$from_email = null;
 		$from_name  = null;
 
-		if ( ! empty( $headers ) ) {
+		if ( empty( $headers ) ) {
+			$headers = array();
+		} else {
 			if ( ! is_array( $headers ) ) {
-				// Explode the headers out, so this function can take both
-				// string headers and an array of headers.
+				// Explode the headers out, so this function can take
+				// both string headers and an array of headers.
 				$tempheaders = explode( "\n", str_replace( "\r\n", "\n", $headers ) );
 			} else {
 				$tempheaders = $headers;
 			}
+			$headers = array();
 
 			// If it's actually got contents.
 			if ( ! empty( $tempheaders ) ) {
 				// Iterate through the raw headers.
 				foreach ( (array) $tempheaders as $header ) {
-					if ( false === strpos( $header, ':' ) ) {
+					if ( strpos( $header, ':' ) === false ) {
 						if ( false !== stripos( $header, 'boundary=' ) ) {
 							$parts    = preg_split( '/boundary=/i', trim( $header ) );
-							$boundary = trim( str_replace( [ "'", '"' ], '', $parts[1] ) );
+							$boundary = trim( str_replace( array( "'", '"' ), '', $parts[1] ) );
 						}
 						continue;
 					}
-
 					// Explode them out.
 					list( $name, $content ) = explode( ':', trim( $header ), 2 );
 
@@ -83,7 +93,7 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
 					$content = trim( $content );
 
 					switch ( strtolower( $name ) ) {
-						// Mainly for legacy -- process a From: header if it's there.
+						// Mainly for legacy -- process a "From:" header if it's there.
 						case 'from':
 							$bracket_pos = strpos( $content, '<' );
 							if ( false !== $bracket_pos ) {
@@ -107,6 +117,7 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
 							if ( strpos( $content, ';' ) !== false ) {
 								list( $type ) = explode( ';', $content );
 								$content_type = trim( $type );
+								// Avoid setting an empty $content_type.
 							} elseif ( '' !== trim( $content ) ) {
 								$content_type = trim( $content );
 							}
@@ -120,16 +131,53 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
 						case 'reply-to':
 							$reply_to = array_merge( (array) $reply_to, explode( ',', $content ) );
 							break;
+						default:
+							// Add it to our grand headers array.
+							$headers[ trim( $name ) ] = trim( $content );
+							break;
 					}
 				}
 			}
 		}
 
-		// If we don't have a content-type from the input headers
+		// Set "From" name and email.
+
+		// If we don't have a name from the input headers.
+		if ( ! isset( $from_name ) ) {
+			$from_name = 'WordPress';
+		}
+
+		/*
+		 * If we don't have an email from the input headers, default to wordpress@$sitename
+		 * Some hosts will block outgoing mail from this address if it doesn't exist,
+		 * but there's no easy alternative. Defaulting to admin_email might appear to be
+		 * another option, but some hosts may refuse to relay mail from an unknown domain.
+		 * See https://core.trac.wordpress.org/ticket/5007.
+		 */
+		if ( ! isset( $from_email ) ) {
+			// Get the site domain and get rid of www.
+			$sitename = wp_parse_url( network_home_url(), PHP_URL_HOST );
+			if ( 'www.' === substr( $sitename, 0, 4 ) ) {
+				$sitename = substr( $sitename, 4 );
+			}
+
+			$from_email = 'wordpress@' . $sitename;
+		}
+
+		/** This filter is documented in wp-includes/pluggable.php */
+		$from_email = apply_filters( 'wp_mail_from', $from_email );
+
+		/** This filter is documented in wp-includes/pluggable.php */
+		$from_name = apply_filters( 'wp_mail_from_name', $from_name );
+
+		// Set Content-Type and charset.
+
+		// If we don't have a content-type from the input headers.
 		if ( ! isset( $content_type ) ) {
 			$content_type = 'text/plain';
 		}
 
+		/** This filter is documented in wp-includes/pluggable.php */
 		$content_type = apply_filters( 'wp_mail_content_type', $content_type );
 
 		$notification = req_notifications()->addNotification();
@@ -159,8 +207,8 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
 			$notification->setSender( $from_email, $from_name );
 		}
 
-		// Add attachments, if exist
-		if ( count( $attachments ) ) {
+		// Add attachments, if exist.
+		if ( ! empty( $attachments ) ) {
 			foreach ( $attachments as $attachment_name => $attachment_path ) {
 				$attachment_name = is_string( $attachment_name ) ? $attachment_name : '';
 
@@ -168,10 +216,10 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
 			}
 		}
 
-		// save and process this notification
+		// Save and process this notification.
 		$notification->save();
 
-		// when use queue is active, don't send the mail, just save it, will be processed via cronjob
+		// When use queue is active, don't send the mail, just save it, will be processed via cronjob.
 		$use_queue = (bool) get_option( 'rplus_notifications_adapters_mandrill_override_use_queue' );
 		if ( ! $use_queue ) {
 			$notification->process();
@@ -190,7 +238,7 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
 
 		return true;
 
-	} catch ( Exception $e ) {
+	} catch ( \Exception $e ) {
 		// When the message couldn't be sent via mandrill, try the native WordPress method.
 		return \Rplus\Notifications\NotificationController::wp_mail_native(
 			$original_arguments['to'],
