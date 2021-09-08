@@ -3,8 +3,8 @@
 namespace Rplus\Notifications;
 
 use Exception;
-use Mandrill;
-use Mandrill_Error;
+use MailchimpTransactional\ApiClient;
+use MailchimpTransactional\ApiException;
 
 /**
  * Class NotificationAdapterMandrill
@@ -58,7 +58,8 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 				$api_key = get_option( 'rplus_notifications_adapters_mandrill_apikey' );
 			}
 
-			$this->mandrill = new Mandrill( $api_key );
+			$this->mandrill = new \MailchimpTransactional\ApiClient();
+			$this->mandrill->setApiKey( $api_key );
 
 			// check if we got a valid API Key
 			$this->mandrill->users->ping();
@@ -145,17 +146,17 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 
 		try {
 
-			$response = $this->mandrill->messages->send( $message );
+			$response = $this->mandrill->messages->send( [ 'messages' => $message ] );
 
 			// update post with mandrill message id
 			update_post_meta( $model->getId(), 'rplus_mandrill_response', $response );
 
 			$model->setState( NotificationState::COMPLETE );
 
-		} catch ( Mandrill_Error $e ) {
+		} catch ( \MailchimpTransactional\ApiException $e ) {
 
 			$model->setState( NotificationState::ERROR );
-			$this->error = get_class( $e ) . ' - ' . $e->getMessage();
+			$this->error = \get_class( $e ) . ' - ' . $e->getMessage();
 
 			return false;
 
