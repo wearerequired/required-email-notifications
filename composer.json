@@ -2,7 +2,7 @@
     "name": "wearerequired/required-email-notifications",
     "description": "WordPress E-Mail Notifications",
     "type": "wordpress-plugin",
-    "license": "GPL-3.0",
+    "license": "GPL-3.0-or-later",
     "authors": [
         {
             "name": "required",
