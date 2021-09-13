@@ -144,22 +144,17 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 			}
 		}
 
-		try {
+		$response = $this->mandrill->messages->send( [ 'messages' => $message ] );
 
-			$response = $this->mandrill->messages->send( [ 'messages' => $message ] );
-
-			// update post with mandrill message id
-			update_post_meta( $model->getId(), 'rplus_mandrill_response', $response );
-
-			$model->setState( NotificationState::COMPLETE );
-
-		} catch ( \MailchimpTransactional\ApiException $e ) {
-
+		if ( $response instanceof \GuzzleHttp\Exception\RequestException ) {
 			$model->setState( NotificationState::ERROR );
-			$this->error = \get_class( $e ) . ' - ' . $e->getMessage();
-
+			$this->error = \get_class( $response ) . ' - ' . json_decode( $response->getResponse()->getBody()->getContents() )->message;
+			return true;
+		} else {
+			// update post with mandrill message id.
+			update_post_meta( $model->getId(), 'rplus_mandrill_response', $response );
+			$model->setState( NotificationState::COMPLETE );
 			return false;
-
 		}
 	}
 
