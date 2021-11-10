@@ -498,7 +498,7 @@ class NotificationModel {
 				printf( '<strong>%s</strong>', __( 'Completed', 'rplusnotifications' ) );
 				break;
 			case NotificationState::ERROR:
-				printf( '<strong>%s</strong> (%s)', __( 'Error', 'rplusnotifications' ), get_post_meta( $post_id, 'rplus_error_message', true ) );
+				printf( '<strong>%s</strong> (%s)', __( 'Error', 'rplusnotifications' ), esc_html( get_post_meta( $post_id, 'rplus_error_message', true ) ) );
 				break;
 		}
 
