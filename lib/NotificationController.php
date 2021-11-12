@@ -84,7 +84,7 @@ final class NotificationController {
 	public function extend_cron_schedules( $schedules ) {
 		$schedules['every_5_minutes'] = [
 			'interval' => 5 * MINUTE_IN_SECONDS,
-			'display'  => __( 'Every five minutes', 'freshjobs-theme' ),
+			'display'  => __( 'Every five minutes', 'rplusnotifications' ),
 		];
 
 		return $schedules;

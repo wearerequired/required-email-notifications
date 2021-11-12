@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<ruleset name="Email Notifications">
+	<description>Coding Standard for the "Email Notifications" plugin.</description>
+
+	<file>.</file>
+
+	<rule ref="Required">
+		<!-- Restore after issues have been resolved. -->
+		<exclude name="SlevomatCodingStandard.TypeHints.ReturnTypeHint"/>
+		<exclude name="SlevomatCodingStandard.TypeHints.ParameterTypeHint"/>
+	</rule>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="rplusnotifications"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="Rplus\Notifications"/>
+				<element value="rplus_notifications"/>
+			</property>
+		</properties>
+	</rule>
+
+	<exclude-pattern>/assets/*</exclude-pattern>
+</ruleset>
