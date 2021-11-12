@@ -615,7 +615,7 @@ final class NotificationController {
 
 		$query = new WP_Query();
 
-		$batch_size = 100;
+		$batch_size = apply_filters( 'rplus_notifications.retention_period_delete_batch_size', 100 );
 		$args       = [
 			'post_type'              => NotificationModel::$post_type,
 			'post_status'            => [ 'publish', 'pending', 'draft', 'future', 'private' ],
