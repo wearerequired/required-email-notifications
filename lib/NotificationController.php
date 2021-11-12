@@ -615,7 +615,8 @@ final class NotificationController {
 
 		$query = new WP_Query();
 
-		$args = [
+		$batch_size = 100;
+		$args       = [
 			'post_type'              => NotificationModel::$post_type,
 			'post_status'            => [ 'publish', 'pending', 'draft', 'future', 'private' ],
 			'date_query'             => [
@@ -624,7 +625,7 @@ final class NotificationController {
 			],
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
-			'posts_per_page'         => 2,
+			'posts_per_page'         => $batch_size,
 			'fields'                 => 'ids',
 			'orderby'                => 'none',
 		];
@@ -633,7 +634,7 @@ final class NotificationController {
 		$total_count = $query->found_posts;
 
 		// Run the delete process again in 10 seconds to delete remaining posts.
-		if ( $total_count > 2 ) {
+		if ( $total_count > $batch_size ) {
 			wp_unschedule_hook( DELETE_CRON_ACTION );
 			wp_schedule_event( time() + 10, 'hourly', DELETE_CRON_ACTION );
 		}
