@@ -47,7 +47,7 @@ final class NotificationController {
 		add_action( 'update_option_' . RETENTION_OPTION, [ $this, 'update_schedule_delete_emails' ], 10, 0 );
 		add_action( 'delete_option_' . RETENTION_OPTION, [ $this, 'update_schedule_delete_emails' ], 10, 0 );
 
-		add_action( DELETE_CRON_ACTION,[ $this, 'process_retention_period_for_emails' ] );
+		add_action( DELETE_CRON_ACTION, [ $this, 'process_retention_period_for_emails' ] );
 
 		if ( is_admin() ) {
 			add_action( 'admin_menu', [ $this, 'add_plugin_page' ] );
@@ -636,7 +636,7 @@ final class NotificationController {
 		// Run the delete process again in 10 seconds to delete remaining posts.
 		if ( $total_count > $batch_size ) {
 			wp_unschedule_hook( DELETE_CRON_ACTION );
-			wp_schedule_event( time() + 10, 'hourly', DELETE_CRON_ACTION );
+			wp_schedule_event( time() + 10, 'daily', DELETE_CRON_ACTION );
 		}
 
 		// Delete the posts.
