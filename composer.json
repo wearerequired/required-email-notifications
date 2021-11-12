@@ -1,39 +1,39 @@
 {
-    "name": "wearerequired/required-email-notifications",
-    "type": "wordpress-plugin",
-    "description": "Email notifications queue and management for WordPress",
-    "license": "GPL-3.0-or-later",
-    "authors": [
-        {
-            "name": "required",
-            "email": "info@required.ch",
-            "homepage": "https://required.com",
-            "role": "Company"
-        },
-        {
-            "name": "Stefan Pasch",
-            "email": "stefan@required.ch",
-            "role": "Developer"
-        },
-        {
-            "name": "Dominik Schilling",
-            "email": "dominik@required.ch",
-            "role": "Developer"
-        }
-    ],
-    "require": {
-        "php": ">=7.2",
-        "mailchimp/transactional": "^1.0",
-        "sendgrid/sendgrid": "^7.4"
+  "name": "wearerequired/required-email-notifications",
+  "type": "wordpress-plugin",
+  "description": "Email notifications queue and management for WordPress",
+  "license": "GPL-3.0-or-later",
+  "authors": [
+    {
+      "name": "required",
+      "email": "info@required.ch",
+      "homepage": "https://required.com",
+      "role": "Company"
     },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "2.x-dev"
-        }
+    {
+      "name": "Stefan Pasch",
+      "email": "stefan@required.ch",
+      "role": "Developer"
     },
-    "autoload": {
-        "psr-4": {
-            "Rplus\\Notifications\\": "lib"
-        }
+    {
+      "name": "Dominik Schilling",
+      "email": "dominik@required.ch",
+      "role": "Developer"
     }
+  ],
+  "require": {
+    "php": ">=7.2",
+    "mailchimp/transactional": "^1.0",
+    "sendgrid/sendgrid": "^7.4"
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "2.x-dev"
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "Rplus\\Notifications\\": "lib"
+    }
+  }
 }
