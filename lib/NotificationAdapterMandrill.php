@@ -145,12 +145,12 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 		if ( $response instanceof \GuzzleHttp\Exception\RequestException ) {
 			$model->setState( NotificationState::ERROR );
 			$this->error = \get_class( $response ) . ' - ' . json_decode( $response->getResponse()->getBody()->getContents() )->message;
-			return true;
+			return false;
 		} else {
 			// update post with mandrill message id.
 			update_post_meta( $model->getId(), 'rplus_mandrill_response', $response );
 			$model->setState( NotificationState::COMPLETE );
-			return false;
+			return true;
 		}
 	}
 
