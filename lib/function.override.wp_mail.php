@@ -168,17 +168,36 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
 			}
 		}
 
-		// save and process this notification
+		// Save and process this notification.
 		$notification->save();
 
-		// when use queue is active, don't send the mail, just save it, will be processed via cronjob
+		// When use queue is active, don't send the mail, just save it, will be processed via cronjob.
 		$use_queue = (bool) get_option( 'rplus_notifications_adapters_mandrill_override_use_queue' );
 		if ( ! $use_queue ) {
 			$notification->process();
 		}
 
-		// When the message couldn't be sent via mandrill, try the native WordPress method.
 		if ( $notification->getState() === \Rplus\Notifications\NotificationState::ERROR ) {
+			// When the message couldn't be sent, try the native WordPress method.
+			$fallback_enabled = apply_filters( 'rplus_notifications.enable_fallback_to_native_wp_mail', true );
+			if ( $fallback_enabled ) {
+				return \Rplus\Notifications\NotificationController::wp_mail_native(
+					$original_arguments['to'],
+					$original_arguments['subject'],
+					$original_arguments['message'],
+					$original_arguments['headers'],
+					$original_arguments['attachments']
+				);
+			}
+
+			return false;
+		}
+
+		return true;
+	} catch ( \Exception $e ) {
+		// When the message couldn't be sent, try the native WordPress method.
+		$fallback_enabled = apply_filters( 'rplus_notifications.enable_fallback_to_native_wp_mail', true );
+		if ( $fallback_enabled ) {
 			return \Rplus\Notifications\NotificationController::wp_mail_native(
 				$original_arguments['to'],
 				$original_arguments['subject'],
@@ -188,16 +207,6 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) {
 			);
 		}
 
-		return true;
-
-	} catch ( Exception $e ) {
-		// When the message couldn't be sent via mandrill, try the native WordPress method.
-		return \Rplus\Notifications\NotificationController::wp_mail_native(
-			$original_arguments['to'],
-			$original_arguments['subject'],
-			$original_arguments['message'],
-			$original_arguments['headers'],
-			$original_arguments['attachments']
-		);
+		return false;
 	}
 }
