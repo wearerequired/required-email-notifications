@@ -147,8 +147,22 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 		$response     = $messages_api->send( [ 'message' => $message ] );
 
 		if ( $response instanceof \GuzzleHttp\Exception\RequestException ) {
+			if ( $response->hasResponse() ) {
+				$response_content = $response->getResponse()->getBody()->getContents();
+				$response_json    = json_decode( $response_content );
+				if ( json_last_error() === JSON_ERROR_NONE ) {
+					$message = $response_json->message;
+				} else {
+					$message = $response_content;
+				}
+			} else {
+				$message = $response->getMessage();
+			}
+
+			$this->error = \get_class( $response ) . ' - ' . $message;
+
 			$model->setState( NotificationState::ERROR );
-			$this->error = \get_class( $response ) . ' - ' . json_decode( $response->getResponse()->getBody()->getContents() )->message;
+
 			return false;
 		} else {
 			// update post with mandrill message response.
