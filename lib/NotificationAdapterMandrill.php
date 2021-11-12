@@ -137,7 +137,7 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 				$message['attachments'][] = [
 					'type'    => $model->getFileMimeType( $attachment_path ),
 					'name'    => $attachment_name,
-					'content' => base64_encode( file_get_contents( $attachment_path ) ),
+					'content' => base64_encode( file_get_contents( $attachment_path ) ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 				];
 			}
 		}
@@ -160,16 +160,48 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 			}
 
 			$this->error = \get_class( $response ) . ' - ' . $message;
-
 			$model->setState( NotificationState::ERROR );
 
 			return false;
-		} else {
-			// update post with mandrill message response.
-			update_post_meta( $model->getId(), 'rplus_mandrill_response', $response );
-			$model->setState( NotificationState::COMPLETE );
-			return true;
 		}
+
+		if ( ! \is_array( $response ) || ! isset( $response[0] ) ) {
+			$this->error = \is_string( $response ) ? $response : 'Unknown response';
+			$model->setState( NotificationState::ERROR );
+
+			return false;
+		}
+
+		// We only send one message, so we only need the first element.
+		$response = $response[0];
+
+		if ( ! $response instanceof \stdClass || ! isset( $response->status ) ) {
+			$this->error = \is_string( $response ) ? $response : 'Unknown response';
+			$model->setState( NotificationState::ERROR );
+
+			return false;
+		}
+
+		if ( 'invalid' === $response->status ) {
+			$this->error = 'Sending status was invalid - ' . json_encode( $response );
+			$model->setState( NotificationState::ERROR );
+
+			return false;
+		}
+
+		if ( 'rejected' === $response->status ) {
+			$this->error = 'Email rejected, reason: ' . $response->reject_reason;
+			$model->setState( NotificationState::ERROR );
+
+			return false;
+		}
+
+		// Status is "sent", "queued", or "scheduled".
+		update_post_meta( $model->getId(), 'rplus_mandrill_response', $response );
+
+		$model->setState( NotificationState::COMPLETE );
+
+		return true;
 	}
 
 	/**
