@@ -2,10 +2,6 @@
 
 namespace Rplus\Notifications;
 
-use Exception;
-use Mandrill;
-use Mandrill_Error;
-
 /**
  * Class NotificationAdapterMandrill
  *
@@ -18,7 +14,7 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 	/**
 	 * The Mandrill object
 	 *
-	 * @var \Mandrill|null
+	 * @var \MailchimpTransactional\ApiClient|null
 	 */
 	private $mandrill = null;
 
@@ -58,15 +54,18 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 				$api_key = get_option( 'rplus_notifications_adapters_mandrill_apikey' );
 			}
 
-			$this->mandrill = new Mandrill( $api_key );
+			$this->mandrill = new \MailchimpTransactional\ApiClient();
+			$this->mandrill->setApiKey( $api_key );
 
 			// check if we got a valid API Key
-			$this->mandrill->users->ping();
+			/** @var \MailchimpTransactional\Api\UsersApi */
+			$users_api = $this->mandrill->users;
+			$users_api->ping();
 
 			// when ping works, the API Key is valid.
 			$this->valid_api_key = true;
 
-		} catch ( Exception $e ) {
+		} catch ( \Exception $e ) {
 			$this->valid_api_key = false;
 			$this->error         = get_class( $e ) . ' - ' . $e->getMessage();
 		}
@@ -143,22 +142,33 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 			}
 		}
 
-		try {
+		/** @var \MailchimpTransactional\Api\MessagesApi $messages_api */
+		$messages_api = $this->mandrill->messages;
+		$response     = $messages_api->send( [ 'message' => $message ] );
 
-			$response = $this->mandrill->messages->send( $message );
+		if ( $response instanceof \GuzzleHttp\Exception\RequestException ) {
+			if ( $response->hasResponse() ) {
+				$response_content = $response->getResponse()->getBody()->getContents();
+				$response_json    = json_decode( $response_content );
+				if ( json_last_error() === JSON_ERROR_NONE ) {
+					$message = $response_json->message;
+				} else {
+					$message = $response_content;
+				}
+			} else {
+				$message = $response->getMessage();
+			}
 
-			// update post with mandrill message id
-			update_post_meta( $model->getId(), 'rplus_mandrill_response', $response );
-
-			$model->setState( NotificationState::COMPLETE );
-
-		} catch ( Mandrill_Error $e ) {
+			$this->error = \get_class( $response ) . ' - ' . $message;
 
 			$model->setState( NotificationState::ERROR );
-			$this->error = get_class( $e ) . ' - ' . $e->getMessage();
 
 			return false;
-
+		} else {
+			// update post with mandrill message response.
+			update_post_meta( $model->getId(), 'rplus_mandrill_response', $response );
+			$model->setState( NotificationState::COMPLETE );
+			return true;
 		}
 	}
 
