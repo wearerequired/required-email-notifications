@@ -17,13 +17,17 @@ const DELETE_CRON_ACTION           = 'rplus_notifications_delete_cron';
  */
 final class NotificationController {
 
+	/**
+	 * Current instance.
+	 *
+	 * @var \Rplus\Notifications\NotificationController
+	 */
 	private static $instance = null;
-	private static $conflict = false;
 
 	/**
-	 * Singleton magizzle
+	 * Return an instance of the NotificationController class, or create one if none exist yet.
 	 *
-	 * @return NotificationController
+	 * @return \Rplus\Notifications\NotificationController|null
 	 */
 	public static function get_instance() {
 		if ( null === self::$instance ) {
@@ -54,24 +58,238 @@ final class NotificationController {
 			add_action( 'admin_init', [ $this, 'plugin_page_init' ] );
 		}
 
-		// check if wordpress mails should be sent via mandrill adapter
-		$wp_mail_override = get_option( 'rplus_notifications_adapters_mandrill_override_wp_mail' );
-		if ( ! empty( $wp_mail_override ) && ( $wp_mail_override == 1 ) ) {
+		// Check if WordPress emails should be sent via Mandrill adapter.
+		$wp_mail_override = (bool) get_option( 'rplus_notifications_adapters_mandrill_override_wp_mail' );
+		if ( $wp_mail_override && NotificationAdapterMandrill::isConfigured() ) { // TODO: Support SendGrid adapter.
+			add_filter( 'pre_wp_mail', [ $this, 'process_wp_mail' ], 5, 2 );
+		}
+	}
 
-			if ( function_exists( 'wp_mail' ) ) {
-				self::$conflict = true;
-				add_action( 'admin_notices', [ __CLASS__, 'wpMailOverrideConflictNotice' ] );
+	/**
+	 * Handler for wp_mail() to send emails via notification queue.
+	 *
+	 * @param null|bool $return Short-circuit return value.
+	 * @param array     $atts {
+	 *     Array of the `wp_mail()` arguments.
+	 *
+	 *     @type string|string[] $to          Array or comma-separated list of email addresses to send message.
+	 *     @type string          $subject     Email subject.
+	 *     @type string          $message     Message contents.
+	 *     @type string|string[] $headers     Additional headers.
+	 *     @type string|string[] $attachments Paths to files to attach.
+	 * }
+	 * @return bool Whether the email was sent successfully.
+	 */
+	public function process_wp_mail( $return, $atts ) {
+		// Bail, if something else has used the filter.
+		if ( null !== $return ) {
+			return $return;
+		}
 
-				return;
+		try {
+
+			if ( isset( $atts['to'] ) ) {
+				$to = $atts['to'];
 			}
 
-			if ( NotificationAdapterMandrill::isConfigured() ) {
-
-				// cause we're namespacing everything, we need to include this function in a separate file
-				// that's the only chance to make it visible in the global namespace
-				require __DIR__ . '/function.override.wp_mail.php';
-
+			if ( ! \is_array( $to ) ) {
+				$to = explode( ',', $to );
 			}
+
+			if ( isset( $atts['subject'] ) ) {
+				$subject = $atts['subject'];
+			}
+
+			if ( isset( $atts['message'] ) ) {
+				$message = $atts['message'];
+			}
+
+			if ( isset( $atts['headers'] ) ) {
+				$headers = $atts['headers'];
+			}
+
+			if ( isset( $atts['attachments'] ) ) {
+				$attachments = $atts['attachments'];
+			}
+
+			if ( ! \is_array( $attachments ) ) {
+				$attachments = explode( "\n", str_replace( "\r\n", "\n", $attachments ) );
+			}
+
+			// Headers.
+			$cc       = [];
+			$bcc      = [];
+			$reply_to = [];
+
+			if ( empty( $headers ) ) {
+				$headers = [];
+			} else {
+				if ( ! \is_array( $headers ) ) {
+					// Explode the headers out, so this function can take
+					// both string headers and an array of headers.
+					$tempheaders = explode( "\n", str_replace( "\r\n", "\n", $headers ) );
+				} else {
+					$tempheaders = $headers;
+				}
+				$headers = [];
+
+				// If it's actually got contents.
+				if ( ! empty( $tempheaders ) ) {
+					// Iterate through the raw headers.
+					foreach ( (array) $tempheaders as $header ) {
+						if ( strpos( $header, ':' ) === false ) {
+							/*if ( false !== stripos( $header, 'boundary=' ) ) {
+								$parts    = preg_split( '/boundary=/i', trim( $header ) );
+								$boundary = trim( str_replace( array( "'", '"' ), '', $parts[1] ) );
+							}*/
+							continue;
+						}
+						// Explode them out.
+						list( $name, $content ) = explode( ':', trim( $header ), 2 );
+
+						// Cleanup crew.
+						$name    = trim( $name );
+						$content = trim( $content );
+
+						switch ( strtolower( $name ) ) {
+							// Mainly for legacy -- process a "From:" header if it's there.
+							case 'from':
+								$bracket_pos = strpos( $content, '<' );
+								if ( false !== $bracket_pos ) {
+									// Text before the bracketed email is the "From" name.
+									if ( $bracket_pos > 0 ) {
+										$from_name = substr( $content, 0, $bracket_pos - 1 );
+										$from_name = str_replace( '"', '', $from_name );
+										$from_name = trim( $from_name );
+									}
+
+									$from_email = substr( $content, $bracket_pos + 1 );
+									$from_email = str_replace( '>', '', $from_email );
+									$from_email = trim( $from_email );
+
+									// Avoid setting an empty $from_email.
+								} elseif ( '' !== trim( $content ) ) {
+									$from_email = trim( $content );
+								}
+								break;
+							case 'content-type':
+								if ( strpos( $content, ';' ) !== false ) {
+									list( $type, $charset_content ) = explode( ';', $content );
+									$content_type                   = trim( $type );
+									/*if ( false !== stripos( $charset_content, 'charset=' ) ) {
+										$charset = trim( str_replace( array( 'charset=', '"' ), '', $charset_content ) );
+									} elseif ( false !== stripos( $charset_content, 'boundary=' ) ) {
+										$boundary = trim( str_replace( array( 'BOUNDARY=', 'boundary=', '"' ), '', $charset_content ) );
+										$charset  = '';
+									}*/
+
+									// Avoid setting an empty $content_type.
+								} elseif ( '' !== trim( $content ) ) {
+									$content_type = trim( $content );
+								}
+								break;
+							case 'cc':
+								$cc = array_merge( (array) $cc, explode( ',', $content ) );
+								break;
+							case 'bcc':
+								$bcc = array_merge( (array) $bcc, explode( ',', $content ) );
+								break;
+							case 'reply-to':
+								$reply_to = array_merge( (array) $reply_to, explode( ',', $content ) );
+								break;
+							default:
+								// Add it to our grand headers array.
+								$headers[ trim( $name ) ] = trim( $content );
+								break;
+						}
+					}
+				}
+			}
+
+			// If we don't have a content-type from the input headers.
+			if ( ! isset( $content_type ) ) {
+				$content_type = 'text/plain';
+			}
+
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+			$content_type = apply_filters( 'wp_mail_content_type', $content_type );
+
+			$notification = req_notifications()->addNotification();
+			$notification
+				->setAdapter( apply_filters( 'rplus_notifications.wp_mail_default_adapter', 'Mandrill' ) )
+				->setSubject( $subject )
+				->setBody( $message )
+				->setContentType( $content_type );
+
+			foreach ( $reply_to as $recipient ) {
+				$notification->addReplyTo( $recipient );
+			}
+
+			foreach ( $to as $recipient ) {
+				$notification->addRecipient( $recipient );
+			}
+
+			foreach ( $cc as $recipient ) {
+				$notification->addCcRecipient( $recipient );
+			}
+
+			foreach ( $bcc as $recipient ) {
+				$notification->addBccRecipient( $recipient );
+			}
+
+			if ( isset( $from_email ) ) {
+				$notification->setSender( $from_email, $from_name ?? null );
+			}
+
+			// Add attachments, if exist.
+			if ( ! empty( $attachments ) ) {
+				foreach ( $attachments as $attachment_name => $attachment_path ) {
+					$attachment_name = \is_string( $attachment_name ) ? $attachment_name : '';
+
+					$notification->addAttachment( $attachment_path, $attachment_name );
+				}
+			}
+
+			// Save and process this notification.
+			$notification->save();
+
+			// When use queue is active, don't send the mail, just save it, will be processed via cronjob.
+			$use_queue = (bool) get_option( 'rplus_notifications_adapters_mandrill_override_use_queue' );
+			if ( ! $use_queue ) {
+				$notification->process();
+			}
+
+			if ( $notification->getState() === \Rplus\Notifications\NotificationState::ERROR ) {
+				// When the message couldn't be sent, try the native WordPress method.
+				$fallback_enabled = apply_filters( 'rplus_notifications.enable_fallback_to_native_wp_mail', true );
+				if ( $fallback_enabled ) {
+					return $this->wp_mail_native(
+						$atts['to'],
+						$atts['subject'],
+						$atts['message'],
+						$atts['headers'],
+						$atts['attachments']
+					);
+				}
+
+				return false;
+			}
+
+			return true;
+		} catch ( \Exception $e ) {
+			// When the message couldn't be sent, try the native WordPress method.
+			$fallback_enabled = apply_filters( 'rplus_notifications.enable_fallback_to_native_wp_mail', true );
+			if ( $fallback_enabled ) {
+				return $this->wp_mail_native(
+					$atts['to'],
+					$atts['subject'],
+					$atts['message'],
+					$atts['headers'],
+					$atts['attachments']
+				);
+			}
+
+			return false;
 		}
 	}
 
@@ -91,35 +309,34 @@ final class NotificationController {
 	}
 
 	/**
-	 * Send mail with the WordPress native wp_mail method
+	 * Sends an email using the WordPress native wp_mail() function.
 	 *
-	 * @param string|array $to          Array or comma-separated list of email addresses to send message.
-	 * @param string       $subject     Email subject
-	 * @param string       $message     Message contents
-	 * @param string|array $headers     Optional. Additional headers.
-	 * @param string|array $attachments Optional. Files to attach.
-	 * @return bool Whether the email contents were sent successfully.
+	 * @param string|string[] $to          Array or comma-separated list of email addresses to send message.
+	 * @param string          $subject     Email subject.
+	 * @param string          $message     Message contents.
+	 * @param string|string[] $headers     Optional. Additional headers.
+	 * @param string|string[] $attachments Optional. Paths to files to attach.
+	 * @return bool Whether the email was sent successfully.
 	 */
-	public static function wp_mail_native( $to, $subject, $message, $headers = '', $attachments = [] ) {
+	private function wp_mail_native( $to, $subject, $message, $headers = '', $attachments = [] ) {
+		if ( WP_DEBUG_LOG ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( "Email Notifications -> wp_mail_native(): $to ($subject)\n" );
+		}
 
-		error_log( "\nEmail Notifications -> wp_mail_native(): $to ($subject)\n" );
+		// Remove the filter added by the override option.
+		$has_filter = has_filter( 'pre_wp_mail', [ $this, 'process_wp_mail' ] );
+		if ( $has_filter ) {
+			remove_filter( 'pre_wp_mail', [ $this, 'process_wp_mail' ], 5 );
+		}
 
-		return require __DIR__ . '/legacy/function.wp_mail.php';
-	}
+		$sent = wp_mail( $to, $subject, $message, $headers, $attachments );
 
-	/**
-	 * Shows a notice
-	 *
-	 * wp_mail could not be overriden cause its already defined somewhere else
-	 */
-	public static function wpMailOverrideConflictNotice() {
-		?>
-		<div class="error">
-			<p>
-				<?php _e( 'Email Notifications: wp_mail has been declared by another process or plugin, so you won\'t be able to use the Mandrill Adapter for all WordPress Mails until the problem is solved.', 'rplusnotifications' ); ?>
-			</p>
-		</div>
-		<?php
+		if ( $has_filter ) {
+			add_filter( 'pre_wp_mail', [ $this, 'process_wp_mail' ], 5, 2 );
+		}
+
+		return $sent;
 	}
 
 	/**
