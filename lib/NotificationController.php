@@ -2,6 +2,13 @@
 
 namespace Rplus\Notifications;
 
+use WP_Query;
+
+const RETENTION_OPTION             = 'rplus_notifications_retention';
+const RETENTION_PERIOD_OPTION      = 'rplus_notifications_retention_period';
+const RETENTION_PERIOD_UNIT_OPTION = 'rplus_notifications_retention_period_unit';
+const DELETE_CRON_ACTION           = 'rplus_notifications_delete_cron';
+
 /**
  * Class description
  *
@@ -35,6 +42,12 @@ final class NotificationController {
 		add_filter( 'cron_schedules', [ $this, 'extend_cron_schedules' ] );
 
 		add_action( 'rplus_notification_cron_hook', [ $this, 'cron' ] );
+
+		add_action( 'add_option_' . RETENTION_OPTION, [ $this, 'update_schedule_delete_emails' ], 10, 0 );
+		add_action( 'update_option_' . RETENTION_OPTION, [ $this, 'update_schedule_delete_emails' ], 10, 0 );
+		add_action( 'delete_option_' . RETENTION_OPTION, [ $this, 'update_schedule_delete_emails' ], 10, 0 );
+
+		add_action( DELETE_CRON_ACTION,[ $this, 'process_retention_period_for_emails' ] );
 
 		if ( is_admin() ) {
 			add_action( 'admin_menu', [ $this, 'add_plugin_page' ] );
@@ -151,8 +164,41 @@ final class NotificationController {
 		register_setting( 'rplus-notifications-email', 'rplus_notifications_adapters_mandrill_override_wp_mail' );
 		register_setting( 'rplus-notifications-email', 'rplus_notifications_adapters_mandrill_override_use_queue' );
 
+		register_setting(
+			'rplus-notifications-email',
+			RETENTION_OPTION,
+			[
+				'type'              => 'string',
+				'default'           => 'keep',
+				'sanitize_callback' => null, // Added below due to missing second argument, see https://core.trac.wordpress.org/ticket/15335.
+			]
+		);
+		add_filter( 'sanitize_option_' . RETENTION_OPTION, [ $this, 'sanitize_retention_option' ], 10, 2 );
+
+		register_setting(
+			'rplus-notifications-email',
+			RETENTION_PERIOD_OPTION,
+			[
+				'type'              => 'integer',
+				'default'           => 7,
+				'sanitize_callback' => null, // Added below due to missing second argument, see https://core.trac.wordpress.org/ticket/15335.
+			]
+		);
+		add_filter( 'sanitize_option_' . RETENTION_PERIOD_OPTION, [ $this, 'sanitize_retention_period_option' ], 10, 2 );
+
+		register_setting(
+			'rplus-notifications-email',
+			RETENTION_PERIOD_UNIT_OPTION,
+			[
+				'type'              => 'string',
+				'default'           => 'days',
+				'sanitize_callback' => null, // Added below due to missing second argument, see https://core.trac.wordpress.org/ticket/15335.
+			]
+		);
+		add_filter( 'sanitize_option_' . RETENTION_PERIOD_UNIT_OPTION, [ $this, 'sanitize_retention_period_unit_option' ], 10, 2 );
+
 		add_settings_section(
-			'rplus_notifications_email',
+			'rplus_notifications_settings',
 			__( 'Settings', 'rplusnotifications' ),
 			function() {
 				_e( 'Configure Email Sender', 'rplusnotifications' );
@@ -173,24 +219,98 @@ final class NotificationController {
 			'rplus_notifications_sender_email',
 			__( 'Sender Email', 'rplusnotifications' ),
 			function() {
-				?><input type="text" class="regular-text" id="rplus_notifications_sender_email"
-						 name="rplus_notifications_sender_email"
-						 value="<?php echo esc_attr( get_option( 'rplus_notifications_sender_email' ) ); ?>" /><?php
+				?>
+				<input type="text" class="regular-text" id="rplus_notifications_sender_email"
+					name="rplus_notifications_sender_email"
+					value="<?php echo esc_attr( get_option( 'rplus_notifications_sender_email' ) ); ?>" />
+				<?php
 			},
 			'rplus-notifications',
-			'rplus_notifications_email'
+			'rplus_notifications_settings'
 		);
 
 		add_settings_field(
 			'rplus_notifications_sender_name',
 			__( 'Sender Name', 'rplusnotifications' ),
 			function() {
-				?><input type="text" class="regular-text" id="rplus_notifications_sender_name"
-						 name="rplus_notifications_sender_name"
-						 value="<?php echo esc_attr( get_option( 'rplus_notifications_sender_name' ) ); ?>" /><?php
+				?>
+				<input type="text" class="regular-text" id="rplus_notifications_sender_name"
+					name="rplus_notifications_sender_name"
+					value="<?php echo esc_attr( get_option( 'rplus_notifications_sender_name' ) ); ?>" />
+				<?php
 			},
 			'rplus-notifications',
-			'rplus_notifications_email'
+			'rplus_notifications_settings'
+		);
+
+		add_settings_field(
+			'rplus_notifications_retention_policy',
+			__( 'Retention Policy for Emails', 'rplusnotifications' ),
+			function() {
+				$retention_option             = get_option( RETENTION_OPTION );
+				$retention_period_option      = get_option( RETENTION_PERIOD_OPTION );
+				$retention_period_unit_option = get_option( RETENTION_PERIOD_UNIT_OPTION );
+				?>
+				<fieldset id="rplus-notifications-retention-policy">
+					<legend class="screen-reader-text">
+						<span><?php _e( 'Retention Policy for Emails', 'rplusnotifications' ); ?></span>
+					</legend>
+
+					<input
+						type="radio"
+						name="<?php echo esc_attr( RETENTION_OPTION ); ?>"
+						id="<?php echo esc_attr( RETENTION_OPTION ); ?>-keep"
+						value="keep"
+						<?php checked( 'keep', $retention_option ); ?>
+					>
+					<label for="<?php echo esc_attr( RETENTION_OPTION ); ?>-keep"><?php _e( 'Keep data', 'rplusnotifications' ); ?></label>
+
+					<br>
+
+					<input
+						type="radio"
+						name="<?php echo esc_attr( RETENTION_OPTION ); ?>"
+						id="<?php echo esc_attr( RETENTION_OPTION ); ?>-delete"
+						value="delete"
+						<?php checked( 'delete', $retention_option ); ?>
+					/>
+					<label for="<?php echo esc_attr( RETENTION_OPTION ); ?>-delete"><?php _e( 'Delete emails older than', 'rplusnotifications' ); ?></label>
+
+					<input
+						type="number"
+						name="<?php echo esc_attr( RETENTION_PERIOD_OPTION ); ?>"
+						id="<?php echo esc_attr( RETENTION_PERIOD_OPTION ); ?>"
+						value="<?php echo esc_attr( $retention_period_option ); ?>"
+						min="1"
+						max="999"
+					>
+					<label for="<?php echo esc_attr( RETENTION_PERIOD_OPTION ); ?>" class="screen-reader-text"><?php _e( 'Time period', 'rplusnotifications' ); ?></label>
+
+					<select id="<?php echo esc_attr( RETENTION_PERIOD_UNIT_OPTION ); ?>" name="<?php echo esc_attr( RETENTION_PERIOD_UNIT_OPTION ); ?>">
+						<option value="days"<?php selected( 'days', $retention_period_unit_option ); ?>><?php _e( 'Days', 'rplusnotifications' ); ?></option>
+						<option value="weeks"<?php selected( 'weeks', $retention_period_unit_option ); ?>><?php _e( 'Weeks', 'rplusnotifications' ); ?></option>
+						<option value="months"<?php selected( 'months', $retention_period_unit_option ); ?>><?php _e( 'Months', 'rplusnotifications' ); ?></option>
+					</select>
+					<label for="<?php echo esc_attr( RETENTION_PERIOD_UNIT_OPTION ); ?>" class="screen-reader-text"><?php _e( 'Time unit', 'rplusnotifications' ); ?></label>
+
+					<?php
+					$next = wp_next_scheduled( DELETE_CRON_ACTION );
+					if ( $next ) {
+						$next_local = $next + get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
+						printf(
+							/* translators: %s: date of next run */
+							'<p class="description">' . __( 'Next cleanup run: %s', 'rplusnotifications' ) . '</p>',
+							date_i18n( __( 'M j, Y @ H:i', 'rplusnotifications' ), $next_local )
+						);
+						?>
+						<?php
+					}
+					?>
+				</fieldset>
+				<?php
+			},
+			'rplus-notifications',
+			'rplus_notifications_settings'
 		);
 
 		add_settings_field(
@@ -266,6 +386,72 @@ final class NotificationController {
 			'rplus-notifications',
 			'rplus_notifications_adapters'
 		);
+	}
+
+	/**
+	 * Sanitizes retention option from user input.
+	 *
+	 * @param string $value The unsanitized option value.
+	 * @param  string $option The option name.
+	 * @return string The sanitized option value.
+	 */
+	public function sanitize_retention_option( $value, $option ) {
+		$value = (string) $value;
+		$value = trim( $value );
+
+		if ( in_array( $value, [ 'keep', 'delete' ], true ) ) {
+			return $value;
+		}
+
+		// Fallback to previous value.
+		$value = get_option( $option );
+
+		return $value;
+	}
+
+	/**
+	 * Sanitizes retention period option from user input.
+	 *
+	 * @param string $value The unsanitized option value.
+	 * @param  string $option The option name.
+	 * @return int The sanitized option value.
+	 */
+	public function sanitize_retention_period_option( $value, $option ) {
+		$value = (string) $value;
+		$value = trim( $value );
+
+		if ( is_numeric( $value ) ) {
+			$value = (int) $value;
+			if ( $value >= 1 && $value <= 999 ) {
+				return $value;
+			}
+		}
+
+		// Fallback to previous value.
+		$value = get_option( $option );
+
+		return $value;
+	}
+
+	/**
+	 * Sanitizes retention period unit option from user input.
+	 *
+	 * @param string $value The unsanitized option value.
+	 * @param  string $option The option name.
+	 * @return int The sanitized option value.
+	 */
+	public function sanitize_retention_period_unit_option( $value, $option ) {
+		$value = (string) $value;
+		$value = trim( $value );
+
+		if ( in_array( $value, [ 'days', 'weeks', 'months' ], true ) ) {
+			return $value;
+		}
+
+		// Fallback to previous value.
+		$value = get_option( $option );
+
+		return $value;
 	}
 
 	/**
@@ -377,5 +563,100 @@ final class NotificationController {
 		$notification = new NotificationModel( $notification_id );
 
 		return $notification;
+	}
+
+	/**
+	 * Calculates the retention period for emails.
+	 *
+	 * @return int Calculated retention period in seconds.
+	 */
+	private function get_retention_period_for_emails() {
+		$retention_period      = get_option( RETENTION_PERIOD_OPTION );
+		$retention_period_unit = get_option( RETENTION_PERIOD_UNIT_OPTION );
+
+		switch ( $retention_period_unit ) {
+			case 'days':
+				$retention_period *= DAY_IN_SECONDS;
+				break;
+
+			case 'weeks':
+				$retention_period *= WEEK_IN_SECONDS;
+				break;
+
+			case 'months':
+				$retention_period *= MONTH_IN_SECONDS;
+				break;
+
+			default:
+				$retention_period = 0;
+				break;
+		}
+
+		return $retention_period;
+	}
+
+	/**
+	 * Checks for the retention period for emails and deletes them
+	 * if exceeded.
+	 *
+	 * Only deletes them in batches of 100 posts. In case of more the
+	 * event gets rescheduled 10 seconds later.
+	 */
+	public function process_retention_period_for_emails() {
+		$retention_option = get_option( RETENTION_OPTION );
+		if ( 'delete' !== $retention_option ) {
+			return;
+		}
+
+		$retention_period = $this->get_retention_period_for_emails();
+		if ( ! $retention_period ) {
+			return;
+		}
+
+		$query = new WP_Query();
+
+		$batch_size = apply_filters( 'rplus_notifications.retention_period_delete_batch_size', 100 );
+		$args       = [
+			'post_type'              => NotificationModel::$post_type,
+			'post_status'            => [ 'publish', 'pending', 'draft', 'future', 'private' ],
+			'date_query'             => [
+				'column' => 'post_date',
+				'before' => $retention_period . ' seconds ago',
+			],
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'posts_per_page'         => $batch_size,
+			'fields'                 => 'ids',
+			'orderby'                => 'none',
+		];
+
+		$post_ids    = $query->query( $args );
+		$total_count = $query->found_posts;
+
+		// Run the delete process again in 10 seconds to delete remaining posts.
+		if ( $total_count > $batch_size ) {
+			wp_unschedule_hook( DELETE_CRON_ACTION );
+			wp_schedule_event( time() + 10, 'hourly', DELETE_CRON_ACTION );
+		}
+
+		// Delete the posts.
+		foreach ( $post_ids as $post_id ) {
+			wp_delete_post( $post_id, true );
+		}
+	}
+
+	/**
+	 * Schedules or unschedules the event for deleting emails.
+	 */
+	public function update_schedule_delete_emails() {
+		$retention_option = get_option( RETENTION_OPTION );
+		if ( 'delete' !== $retention_option ) {
+			wp_unschedule_hook( DELETE_CRON_ACTION );
+			return;
+		}
+
+		if ( ! wp_next_scheduled( DELETE_CRON_ACTION ) ) {
+			wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', DELETE_CRON_ACTION );
+		}
 	}
 }
