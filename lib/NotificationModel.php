@@ -897,34 +897,33 @@ class NotificationModel {
 	 * should check the current state and handle it
 	 * NEW => INPROGRESS
 	 * INPROGRESS (check if we need to escalate) => COMPLETED / ABORTED / ERROR
+	 *
+	 * @return bool True if processed successfully, false otherwise.
 	 */
 	public function process() {
-
-		// load the adapter
 		$adapter = $this->loadAdapter();
 
-		// notification is NEW
-		if ( (int) $this->state === NotificationState::ISNEW ) {
-
+		// Notification is new.
+		if ( NotificationState::ISNEW === (int) $this->state ) {
 			$adapter->execute( $this );
 
 			update_post_meta( $this->id, 'rplus_last_execution_time', time() );
 
-			// check the new state of this notification (was probably updated in adapter execute())
-			if ( $this->state === NotificationState::ERROR ) {
-
+			// Check the new state of this notification (was probably updated in adapter execute()).
+			if ( NotificationState::ERROR === $this->state ) {
 				$this->setErrorMessage( $adapter->getErrorMessage() );
 				$this->save();
-
-			} else {
-
-				$this->save();
-
+				return false;
 			}
+
+			$this->save();
+
+			return true;
 		}
 
-		// when needed, implement the update and escalate stuff here
+		// TODO: when needed, implement the update and escalate stuff here.
 
+		return false;
 	}
 
 	/**
