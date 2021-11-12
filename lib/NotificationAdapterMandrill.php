@@ -2,10 +2,6 @@
 
 namespace Rplus\Notifications;
 
-use Exception;
-use MailchimpTransactional\ApiClient;
-use MailchimpTransactional\ApiException;
-
 /**
  * Class NotificationAdapterMandrill
  *
@@ -18,7 +14,7 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 	/**
 	 * The Mandrill object
 	 *
-	 * @var \Mandrill|null
+	 * @var \MailchimpTransactional\ApiClient|null
 	 */
 	private $mandrill = null;
 
@@ -67,7 +63,7 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 			// when ping works, the API Key is valid.
 			$this->valid_api_key = true;
 
-		} catch ( Exception $e ) {
+		} catch ( \Exception $e ) {
 			$this->valid_api_key = false;
 			$this->error         = get_class( $e ) . ' - ' . $e->getMessage();
 		}
