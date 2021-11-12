@@ -58,7 +58,9 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 			$this->mandrill->setApiKey( $api_key );
 
 			// check if we got a valid API Key
-			$this->mandrill->users->ping();
+			/** @var \MailchimpTransactional\Api\UsersApi */
+			$users_api = $this->mandrill->users;
+			$users_api->ping();
 
 			// when ping works, the API Key is valid.
 			$this->valid_api_key = true;
@@ -140,14 +142,16 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 			}
 		}
 
-		$response = $this->mandrill->messages->send( [ 'messages' => $message ] );
+		/** @var \MailchimpTransactional\Api\MessagesApi $messages_api */
+		$messages_api = $this->mandrill->messages;
+		$response     = $messages_api->send( [ 'messages' => $message ] );
 
 		if ( $response instanceof \GuzzleHttp\Exception\RequestException ) {
 			$model->setState( NotificationState::ERROR );
 			$this->error = \get_class( $response ) . ' - ' . json_decode( $response->getResponse()->getBody()->getContents() )->message;
 			return false;
 		} else {
-			// update post with mandrill message id.
+			// update post with mandrill message response.
 			update_post_meta( $model->getId(), 'rplus_mandrill_response', $response );
 			$model->setState( NotificationState::COMPLETE );
 			return true;
