@@ -144,7 +144,7 @@ class NotificationAdapterMandrill implements NotificationAdapter {
 
 		/** @var \MailchimpTransactional\Api\MessagesApi $messages_api */
 		$messages_api = $this->mandrill->messages;
-		$response     = $messages_api->send( [ 'messages' => $message ] );
+		$response     = $messages_api->send( [ 'message' => $message ] );
 
 		if ( $response instanceof \GuzzleHttp\Exception\RequestException ) {
 			$model->setState( NotificationState::ERROR );
