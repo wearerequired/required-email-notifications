@@ -455,7 +455,13 @@ class NotificationModel {
 				function ( $post ) {
 					$notification = req_notifications()->getNotification( $post->ID );
 
-					echo '<div id="rplus-notifications-content" class="rplus-notifications-iframe-sandbox" data-content="' . esc_attr( $notification->getBody() ) . '"></div>';
+					if ( 'text/html' === $notification->getContentType() ) {
+						$content = $notification->getBody();
+					} else {
+						$content = '<pre>' . $notification->getBody() . '</pre>';
+					}
+
+					echo '<div id="rplus-notifications-content" class="rplus-notifications-iframe-sandbox" data-content="' . esc_attr( $content ) . '"></div>';
 				},
 				NotificationModel::$post_type,
 				'normal'
