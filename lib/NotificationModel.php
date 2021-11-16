@@ -208,6 +208,11 @@ class NotificationModel {
 			return $post_types;
 		} );
 
+		add_filter( 'wpseo_indexable_excluded_post_types', function( $post_types ) {
+			$post_types[] = self::$post_type;
+			return $post_types;
+		} );
+
 		/**
 		 * Modify wp-admin columns for NotificationModel
 		 *
