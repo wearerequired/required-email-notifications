@@ -311,13 +311,19 @@ class NotificationModel {
 			if ( '' !== $query->get( 's' ) ) {
 				$search_query_where = null;
 
-				add_filter( 'posts_search', function ( $search ) use ( &$search_query_where ) {
+				add_filter( 'posts_search', function ( $search, $query ) use ( &$search_query_where ) {
 					remove_filter( current_filter(), __FUNCTION__ );
+
+					$original_search = $search;
+					$search          = apply_filters( 'rplus_notifications.post_search_query', $search, $query );
+					if ( ! \is_string( $search ) ) {
+						$search = $original_search;
+					}
 
 					$search_query_where = $search;
 
 					return $search;
-				} );
+				}, 10, 2 );
 
 				// Use nested query to also search in post meta.
 				add_filter( 'posts_where', function ( $where, $query ) use ( &$search_query_where ) {
