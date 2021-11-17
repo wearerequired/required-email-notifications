@@ -328,6 +328,11 @@ class NotificationModel {
 						'%' . $wpdb->esc_like( $query->get( 's' ) ) . '%'
 					);
 
+					$post_in_query = apply_filters( 'rplus_notifications.recipient_post_in_query', $post_in_query, $query );
+					if ( ! \is_string( $post_in_query ) ) {
+						return $where;
+					}
+
 					// A backslash in the replacement parameter of preg_replace() must be doubled.
 					$post_in_query_slashed = addcslashes( $post_in_query, '\\' );
 					$search_query_where_or = preg_replace( '/^ AND \(/', ' AND (' . $post_in_query_slashed . ' OR ', $search_query_where, 1 );
