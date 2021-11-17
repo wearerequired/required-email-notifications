@@ -315,7 +315,7 @@ class NotificationModel {
 					remove_filter( current_filter(), __FUNCTION__ );
 
 					$original_search = $search;
-					$search          = apply_filters( 'rplus_notifications.post_search_query', $search, $query );
+					$search          = apply_filters( 'rplus_notifications.posts_search_query', $search, $query );
 					if ( ! \is_string( $search ) ) {
 						$search = $original_search;
 					}
@@ -344,6 +344,18 @@ class NotificationModel {
 					$search_query_where_or = preg_replace( '/^ AND \(/', ' AND (' . $post_in_query_slashed . ' OR ', $search_query_where, 1 );
 
 					return str_replace( $search_query_where, $search_query_where_or, $where );
+				}, 10, 2 );
+
+				add_filter( 'posts_search_orderby', function( $search_orderby, $query ) {
+					remove_filter( current_filter(), __FUNCTION__ );
+
+					$original_search_orderby = $search_orderby;
+					$search_orderby          = apply_filters( 'rplus_notifications.posts_search_orderby', $search_orderby, $query );
+					if ( ! \is_string( $search_orderby ) ) {
+						$search_orderby = $original_search_orderby;
+					}
+
+					return $search_orderby;
 				}, 10, 2 );
 
 				remove_filter( current_filter(), __FUNCTION__ );
