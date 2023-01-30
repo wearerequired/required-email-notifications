@@ -683,7 +683,7 @@ final class NotificationController {
 	/**
 	 * no cloning allowed, we just wan't to have only one instance of this class
 	 */
-	private final function __clone() {
+	private function __clone() {
 	}
 
 	/**
