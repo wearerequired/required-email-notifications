@@ -3,7 +3,7 @@
 Plugin Name: Email Notifications
 Plugin URI: https://github.com/wearerequired/required-email-notifications
 Description: Email notifications queue and management.
-Version: 2.0.0
+Version: 2.0.1
 Author: required gmbh
 Author URI: https://required.com
 Text Domain: rplusnotifications
