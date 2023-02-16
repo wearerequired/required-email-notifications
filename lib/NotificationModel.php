@@ -486,7 +486,7 @@ class NotificationModel {
 					if ( 'text/html' === $notification->getContentType() ) {
 						$content = $notification->getBody();
 					} else {
-						$content = '<pre>' . $notification->getBody() . '</pre>';
+						$content = '<pre style="white-space:pre-wrap;">' . $notification->getBody() . '</pre>';
 					}
 
 					echo '<div id="rplus-notifications-content" class="rplus-notifications-iframe-sandbox" data-content="' . esc_attr( $content ) . '"></div>';
