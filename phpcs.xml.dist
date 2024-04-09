@@ -10,6 +10,11 @@
 		<exclude name="SlevomatCodingStandard.TypeHints.ParameterTypeHint"/>
 	</rule>
 
+	<!-- The minimum supported WordPress version for all sniffs which use it. -->
+	<config name="minimum_supported_wp_version" value="6.3"/>
+	<!-- The minimum PHP requirement. -->
+	<config name="testVersion" value="8.0-"/>
+
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">
