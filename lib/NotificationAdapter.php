@@ -6,8 +6,6 @@ namespace Rplus\Notifications;
  * Interface NotificationAdapter
  *
  * Each adapter has to implement this interface to ensure we have all needed methods available
- *
- * @package Rplus\Notifications
  */
 interface NotificationAdapter {
 

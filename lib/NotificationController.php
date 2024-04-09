@@ -1,4 +1,7 @@
 <?php
+/**
+ * NotificationController class
+ */
 
 namespace Rplus\Notifications;
 
@@ -10,10 +13,7 @@ const RETENTION_PERIOD_UNIT_OPTION = 'rplus_notifications_retention_period_unit'
 const DELETE_CRON_ACTION           = 'rplus_notifications_delete_cron';
 
 /**
- * Class description
- *
- * @author Stefan Pasch <stefan@codeschmiede.de>
- * @Date   : 16.08.13 16:15
+ * Main controller class.
  */
 final class NotificationController {
 
@@ -716,30 +716,29 @@ final class NotificationController {
 	 * Will start processing all Notifications in state NEW
 	 */
 	public function processQueue() {
-		// fetch all notifications in state new
-		$collection = new NotificationModelCollection( [
-			'post_status' => [ 'publish', 'pending', 'draft', 'future', 'private' ],
-			'meta_query'  => [
-				// load all notifications with send_on is in the past
-				[
-					'key'     => 'rplus_send_on',
-					'value'   => date( 'Y-m-d H:i:s' ),
-					'compare' => '<',
-					'type'    => 'DATETIME',
+		// Fetch all notifications in state new.
+		$collection = new NotificationModelCollection(
+			[
+				'post_status' => [ 'publish', 'pending', 'draft', 'future', 'private' ],
+				'meta_query'  => [
+					[
+						'key'     => 'rplus_send_on',
+						'value'   => gmdate( 'Y-m-d H:i:s' ),
+						'compare' => '<',
+						'type'    => 'DATETIME',
+					],
+					[
+						'key'     => 'rplus_state',
+						'value'   => NotificationState::ISNEW,
+						'compare' => '=',
+						'type'    => 'NUMERIC',
+					],
 				],
-				[
-					'key'     => 'rplus_state',
-					'value'   => NotificationState::ISNEW,
-					'compare' => '=',
-					'type'    => 'NUMERIC',
-				],
-			],
-		] );
+			]
+		);
 
 		while ( $collection->valid() ) {
-
 			$notification = $collection->current();
-
 			$notification->process();
 
 			$collection->next();

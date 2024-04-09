@@ -6,8 +6,6 @@ namespace Rplus\Notifications;
  * Class NotificationAdapterMandrill
  *
  * default adapter for handling Notifications
- *
- * @package Rplus\Notifications
  */
 class NotificationAdapterMandrill implements NotificationAdapter {
 

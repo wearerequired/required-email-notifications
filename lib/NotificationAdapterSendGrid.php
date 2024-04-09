@@ -7,8 +7,6 @@ use SendGrid;
 
 /**
  * Class NotificationAdapterSendGrid
- *
- * @package Rplus\Notifications
  */
 class NotificationAdapterSendGrid implements NotificationAdapter {
 
