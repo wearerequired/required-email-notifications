@@ -503,8 +503,8 @@ class NotificationModel {
 	 * @param $post_id
 	 */
 	public static function outputRecipientsList( $post_id ) {
-		$recipients = get_post_meta( $post_id, 'rplus_recipient', true );
-		if ( count( $recipients ) ) {
+		$recipients = get_post_meta( $post_id, 'rplus_recipient', true ) ?: [];
+		if ( $recipients ) {
 			echo '<ul style="margin: 0;">';
 			foreach ( $recipients as $r ) {
 				echo '<li>';
@@ -556,18 +556,18 @@ class NotificationModel {
 		}
 
 		$this->setBody( $body );
-		$this->setContentType( get_post_meta( $this->id, 'rplus_mail_content_type', true ) );
+		$this->setContentType( get_post_meta( $this->id, 'rplus_mail_content_type', true ) ?: 'text/html' );
 		$this->setState( get_post_meta( $this->id, 'rplus_state', true ) );
 		$this->setSubject( $this->post->post_title );
 		$this->setSchedule( get_post_meta( $this->id, 'rplus_send_on', true ) );
-		$this->setErrorMessage( get_post_meta( $this->id, 'rplus_error_message', true ) );
+		$this->setErrorMessage( get_post_meta( $this->id, 'rplus_error_message', true ) ?: null );
 
-		$this->sender_name  = get_post_meta( $this->id, 'rplus_sender_name', true );
-		$this->sender_email = get_post_meta( $this->id, 'rplus_sender_email', true );
-		$this->recipient    = get_post_meta( $this->id, 'rplus_recipient', true );
-		$this->cc           = get_post_meta( $this->id, 'rplus_recipient_cc', true );
-		$this->bcc          = get_post_meta( $this->id, 'rplus_recipient_bcc', true );
-		$this->attachment   = get_post_meta( $this->id, 'rplus_attachment', true );
+		$this->sender_name  = get_post_meta( $this->id, 'rplus_sender_name', true ) ?: '';
+		$this->sender_email = get_post_meta( $this->id, 'rplus_sender_email', true ) ?: '';
+		$this->recipient    = get_post_meta( $this->id, 'rplus_recipient', true ) ?: [];
+		$this->cc           = get_post_meta( $this->id, 'rplus_recipient_cc', true ) ?: [];
+		$this->bcc          = get_post_meta( $this->id, 'rplus_recipient_bcc', true ) ?: [];
+		$this->attachment   = get_post_meta( $this->id, 'rplus_attachment', true ) ?: [];
 	}
 
 	/**
@@ -1050,7 +1050,22 @@ class NotificationModel {
 		update_post_meta( $this->id, 'rplus_attachment', $this->attachment );
 		update_post_meta( $this->id, 'rplus_send_on', $this->send_on );
 		update_post_meta( $this->id, 'rplus_state', $this->state );
-		update_post_meta( $this->id, 'rplus_error_message', $this->error_message );
+
+		if ( $this->cc ) {
+			update_post_meta( $this->id, 'rplus_recipient_cc', $this->cc );
+		}
+		if ( $this->bcc ) {
+			update_post_meta( $this->id, 'rplus_recipient_bcc', $this->bcc );
+		}
+		if ( $this->reply_to ) {
+			update_post_meta( $this->id, 'rplus_reply_to', $this->reply_to );
+		}
+		if ( $this->attachment ) {
+			update_post_meta( $this->id, 'rplus_attachment', $this->attachment );
+		}
+		if ( $this->error_message ) {
+			update_post_meta( $this->id, 'rplus_error_message', $this->error_message );
+		}
 
 		// Remove deprecated post meta for older notifications.
 		if ( ! $is_new ) {
