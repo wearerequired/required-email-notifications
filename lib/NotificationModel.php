@@ -504,7 +504,7 @@ class NotificationModel {
 	 */
 	public static function outputRecipientsList( $post_id ) {
 		$recipients = get_post_meta( $post_id, 'rplus_recipient', true );
-		if ( count( $recipients ) ) {
+		if ( \count( $recipients ) ) {
 			echo '<ul style="margin: 0;">';
 			foreach ( $recipients as $r ) {
 				echo '<li>';
@@ -794,7 +794,7 @@ class NotificationModel {
 	 * @return array|bool
 	 */
 	public function getAttachments() {
-		if ( ! count( $this->attachment ) ) {
+		if ( ! \count( $this->attachment ) ) {
 			return false;
 		}
 
@@ -1069,7 +1069,7 @@ class NotificationModel {
 	public function getFileMimeType( $file ) {
 
 		// use the Finfo file extension in php, if exists
-		if ( function_exists( 'finfo_file' ) ) {
+		if ( \function_exists( 'finfo_file' ) ) {
 
 			$finfo = finfo_open( FILEINFO_MIME_TYPE );
 			$mime  = finfo_file( $finfo, $file );
@@ -1078,12 +1078,12 @@ class NotificationModel {
 			return $mime;
 
 			// use depricated php method to get mime
-		} elseif ( function_exists( 'mime_content_type' ) ) {
+		} elseif ( \function_exists( 'mime_content_type' ) ) {
 
 			return mime_content_type( $file );
 
 			// try shell command
-		} elseif ( ! stristr( ini_get( 'disable_functions' ), 'shell_exec' ) ) {
+		} elseif ( ! stristr( \ini_get( 'disable_functions' ), 'shell_exec' ) ) {
 
 			// http://stackoverflow.com/a/134930/1593459
 			$file = escapeshellarg( $file );

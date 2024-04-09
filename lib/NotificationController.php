@@ -534,7 +534,7 @@ final class NotificationController {
 			'rplus_notifications_adapters_sendgrid_apikey',
 			__( 'SendGrid API Key', 'rplusnotifications' ),
 			function() {
-				if ( defined( 'RPLUS_NOTIFICATIONS_ADAPTER_SENDGRID_API_KEY' ) ) {
+				if ( \defined( 'RPLUS_NOTIFICATIONS_ADAPTER_SENDGRID_API_KEY' ) ) {
 					?><input type="text" class="regular-text" readonly value="***************<?php echo substr( RPLUS_NOTIFICATIONS_ADAPTER_SENDGRID_API_KEY, -4 )?>">
 					<p class="description"><?php esc_html_e( 'SendGrid API Key ist via wp-config.php definiert', 'rplusnotifications' ); ?></p>
 					<input type="hidden" id="rplus_notifications_adapters_mandrill_apikey"
@@ -553,7 +553,7 @@ final class NotificationController {
 			'rplus_notifications_adapters_mandrill_apikey',
 			__( 'Mandrill API Key', 'rplusnotifications' ),
 			function() {
-				if ( defined( 'RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY' ) ) {
+				if ( \defined( 'RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY' ) ) {
 					?><input type="text" class="regular-text" readonly value="***************<?php echo substr( RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY, -4 )?>">
 					<p class="description"><?php esc_html_e( 'Mandrill API Key ist via wp-config.php definiert', 'rplusnotifications' ); ?></p>
 					<input type="hidden" id="rplus_notifications_adapters_mandrill_apikey"
@@ -616,7 +616,7 @@ final class NotificationController {
 		$value = (string) $value;
 		$value = trim( $value );
 
-		if ( in_array( $value, [ 'keep', 'delete' ], true ) ) {
+		if ( \in_array( $value, [ 'keep', 'delete' ], true ) ) {
 			return $value;
 		}
 
@@ -661,7 +661,7 @@ final class NotificationController {
 		$value = (string) $value;
 		$value = trim( $value );
 
-		if ( in_array( $value, [ 'days', 'weeks', 'months' ], true ) ) {
+		if ( \in_array( $value, [ 'days', 'weeks', 'months' ], true ) ) {
 			return $value;
 		}
 
@@ -675,7 +675,7 @@ final class NotificationController {
 	 * make some initialisation
 	 */
 	public function init() {
-		load_plugin_textdomain( 'rplusnotifications', false, dirname( \Rplus\Notifications\PLUGIN_BASENAME ) . '/languages' );
+		load_plugin_textdomain( 'rplusnotifications', false, \dirname( \Rplus\Notifications\PLUGIN_BASENAME ) . '/languages' );
 
 		NotificationModel::register();
 	}
