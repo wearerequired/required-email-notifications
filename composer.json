@@ -22,13 +22,13 @@
     }
   ],
   "require": {
-    "php": ">=7.2",
+    "php": ">=8.0",
     "mailchimp/transactional": "^1.0",
     "sendgrid/sendgrid": "^7.4"
   },
   "extra": {
     "branch-alias": {
-      "dev-master": "2.x-dev"
+      "dev-master": "3.x-dev"
     }
   },
   "autoload": {
