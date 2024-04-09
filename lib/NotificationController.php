@@ -1,4 +1,7 @@
 <?php
+/**
+ * NotificationController class
+ */
 
 namespace Rplus\Notifications;
 
@@ -10,10 +13,7 @@ const RETENTION_PERIOD_UNIT_OPTION = 'rplus_notifications_retention_period_unit'
 const DELETE_CRON_ACTION           = 'rplus_notifications_delete_cron';
 
 /**
- * Class description
- *
- * @author Stefan Pasch <stefan@codeschmiede.de>
- * @Date   : 16.08.13 16:15
+ * Main controller class.
  */
 final class NotificationController {
 
@@ -534,7 +534,7 @@ final class NotificationController {
 			'rplus_notifications_adapters_sendgrid_apikey',
 			__( 'SendGrid API Key', 'rplusnotifications' ),
 			function() {
-				if ( defined( 'RPLUS_NOTIFICATIONS_ADAPTER_SENDGRID_API_KEY' ) ) {
+				if ( \defined( 'RPLUS_NOTIFICATIONS_ADAPTER_SENDGRID_API_KEY' ) ) {
 					?><input type="text" class="regular-text" readonly value="***************<?php echo substr( RPLUS_NOTIFICATIONS_ADAPTER_SENDGRID_API_KEY, -4 )?>">
 					<p class="description"><?php esc_html_e( 'SendGrid API Key ist via wp-config.php definiert', 'rplusnotifications' ); ?></p>
 					<input type="hidden" id="rplus_notifications_adapters_mandrill_apikey"
@@ -553,7 +553,7 @@ final class NotificationController {
 			'rplus_notifications_adapters_mandrill_apikey',
 			__( 'Mandrill API Key', 'rplusnotifications' ),
 			function() {
-				if ( defined( 'RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY' ) ) {
+				if ( \defined( 'RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY' ) ) {
 					?><input type="text" class="regular-text" readonly value="***************<?php echo substr( RPLUS_NOTIFICATIONS_ADAPTER_MANDRILL_API_KEY, -4 )?>">
 					<p class="description"><?php esc_html_e( 'Mandrill API Key ist via wp-config.php definiert', 'rplusnotifications' ); ?></p>
 					<input type="hidden" id="rplus_notifications_adapters_mandrill_apikey"
@@ -616,7 +616,7 @@ final class NotificationController {
 		$value = (string) $value;
 		$value = trim( $value );
 
-		if ( in_array( $value, [ 'keep', 'delete' ], true ) ) {
+		if ( \in_array( $value, [ 'keep', 'delete' ], true ) ) {
 			return $value;
 		}
 
@@ -661,7 +661,7 @@ final class NotificationController {
 		$value = (string) $value;
 		$value = trim( $value );
 
-		if ( in_array( $value, [ 'days', 'weeks', 'months' ], true ) ) {
+		if ( \in_array( $value, [ 'days', 'weeks', 'months' ], true ) ) {
 			return $value;
 		}
 
@@ -675,7 +675,7 @@ final class NotificationController {
 	 * make some initialisation
 	 */
 	public function init() {
-		load_plugin_textdomain( 'rplusnotifications', false, dirname( \Rplus\Notifications\PLUGIN_BASENAME ) . '/languages' );
+		load_plugin_textdomain( 'rplusnotifications', false, \dirname( \Rplus\Notifications\PLUGIN_BASENAME ) . '/languages' );
 
 		NotificationModel::register();
 	}
@@ -716,30 +716,29 @@ final class NotificationController {
 	 * Will start processing all Notifications in state NEW
 	 */
 	public function processQueue() {
-		// fetch all notifications in state new
-		$collection = new NotificationModelCollection( [
-			'post_status' => [ 'publish', 'pending', 'draft', 'future', 'private' ],
-			'meta_query'  => [
-				// load all notifications with send_on is in the past
-				[
-					'key'     => 'rplus_send_on',
-					'value'   => date( 'Y-m-d H:i:s' ),
-					'compare' => '<',
-					'type'    => 'DATETIME',
+		// Fetch all notifications in state new.
+		$collection = new NotificationModelCollection(
+			[
+				'post_status' => [ 'publish', 'pending', 'draft', 'future', 'private' ],
+				'meta_query'  => [
+					[
+						'key'     => 'rplus_send_on',
+						'value'   => gmdate( 'Y-m-d H:i:s' ),
+						'compare' => '<',
+						'type'    => 'DATETIME',
+					],
+					[
+						'key'     => 'rplus_state',
+						'value'   => NotificationState::ISNEW,
+						'compare' => '=',
+						'type'    => 'NUMERIC',
+					],
 				],
-				[
-					'key'     => 'rplus_state',
-					'value'   => NotificationState::ISNEW,
-					'compare' => '=',
-					'type'    => 'NUMERIC',
-				],
-			],
-		] );
+			]
+		);
 
 		while ( $collection->valid() ) {
-
 			$notification = $collection->current();
-
 			$notification->process();
 
 			$collection->next();

@@ -6,29 +6,29 @@
   "authors": [
     {
       "name": "required",
-      "email": "info@required.ch",
+      "email": "team@required.com",
       "homepage": "https://required.com",
       "role": "Company"
     },
     {
       "name": "Stefan Pasch",
-      "email": "stefan@required.ch",
+      "email": "stefan@required.com",
       "role": "Developer"
     },
     {
       "name": "Dominik Schilling",
-      "email": "dominik@required.ch",
+      "email": "dominik@required.com",
       "role": "Developer"
     }
   ],
   "require": {
-    "php": ">=7.2",
+    "php": ">=8.0",
     "mailchimp/transactional": "^1.0",
     "sendgrid/sendgrid": "^7.4"
   },
   "extra": {
     "branch-alias": {
-      "dev-master": "2.x-dev"
+      "dev-master": "3.x-dev"
     }
   },
   "autoload": {

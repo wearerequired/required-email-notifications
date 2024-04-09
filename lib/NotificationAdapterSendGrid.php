@@ -7,8 +7,6 @@ use SendGrid;
 
 /**
  * Class NotificationAdapterSendGrid
- *
- * @package Rplus\Notifications
  */
 class NotificationAdapterSendGrid implements NotificationAdapter {
 
@@ -49,7 +47,7 @@ class NotificationAdapterSendGrid implements NotificationAdapter {
 		try {
 
 			// When api key is defined via constant, take that.
-			if ( defined( 'RPLUS_NOTIFICATIONS_ADAPTER_SENDGRID_API_KEY' ) ) {
+			if ( \defined( 'RPLUS_NOTIFICATIONS_ADAPTER_SENDGRID_API_KEY' ) ) {
 				$api_key = RPLUS_NOTIFICATIONS_ADAPTER_SENDGRID_API_KEY;
 			} else {
 				$api_key = get_option( 'rplus_notifications_adapters_sendgrid_apikey' );
@@ -62,7 +60,7 @@ class NotificationAdapterSendGrid implements NotificationAdapter {
 
 		} catch ( Exception $e ) {
 			$this->valid_api_key = false;
-			$this->error         = get_class( $e ) . ' - ' . $e->getMessage();
+			$this->error         = \get_class( $e ) . ' - ' . $e->getMessage();
 		}
 	}
 
@@ -130,7 +128,7 @@ class NotificationAdapterSendGrid implements NotificationAdapter {
 		} catch ( Exception $e ) {
 
 			$model->setState( NotificationState::ERROR );
-			$this->error = get_class( $e ) . ' - ' . $e->getMessage();
+			$this->error = \get_class( $e ) . ' - ' . $e->getMessage();
 
 			return false;
 
@@ -194,7 +192,7 @@ class NotificationAdapterSendGrid implements NotificationAdapter {
 	 * @return bool
 	 */
 	public static function isConfigured() {
-		if ( ! defined( 'RPLUS_NOTIFICATIONS_ADAPTER_SENDGRID_API_KEY' ) && ! get_option( 'rplus_notifications_adapters_sendgrid_apikey' ) ) {
+		if ( ! \defined( 'RPLUS_NOTIFICATIONS_ADAPTER_SENDGRID_API_KEY' ) && ! get_option( 'rplus_notifications_adapters_sendgrid_apikey' ) ) {
 			return false;
 		}
 
